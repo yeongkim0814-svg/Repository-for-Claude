@@ -2,9 +2,17 @@
   "extraKnownMarketplaces": {
     "superpowers-marketplace": {
       "source": { "source": "github", "repo": "obra/superpowers-marketplace" }
+    },
+    "thedotmack": {
+      "source": { "source": "github", "repo": "thedotmack/claude-mem" }
+    },
+    "claude-code-plugins": {
+      "source": { "source": "github", "repo": "anthropics/claude-code" }
     }
   },
   "enabledPlugins": {
-    "superpowers@superpowers-marketplace": true
+    "superpowers@superpowers-marketplace": true,
+    "claude-mem@thedotmack": true,
+    "frontend-design@claude-code-plugins": true
   }
 }
