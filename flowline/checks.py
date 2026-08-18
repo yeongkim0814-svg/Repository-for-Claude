@@ -14,6 +14,20 @@ def _rel(a, b):
     return abs(a - b) / abs(b) if b != 0 else abs(a - b)
 
 
+def _max_over_bodies(residual_fn, bodies=BODIES):
+    """bodies 를 순회하며 residual_fn(body) 의 최댓값과 그 위치를 돌려준다.
+
+    check_calibrated_w_is_escape_speed / check_forward_ratio_matches_schwarzschild /
+    check_vacuum_closure 가 공유하던 'worst, where 갱신 루프' 를 한 곳으로 모은 것.
+    """
+    worst, where = mp.mpf(0), ""
+    for b in bodies:
+        d = residual_fn(b)
+        if d > worst:
+            worst, where = d, b.label
+    return worst, where
+
+
 def check_boost_vs_closed_form():
     """네 규약의 닫힌 형태가 명시적 Lorentz 부스트와 일치하는가."""
     worst, where = mp.mpf(0), ""
@@ -75,35 +89,27 @@ def check_B2_is_doppler():
 
 def check_calibrated_w_is_escape_speed():
     """B1 로 역산한 w 가 정확히 탈출속도인가 (약한장 근사가 아니라 전 영역)."""
-    worst, where = mp.mpf(0), ""
-    for b in BODIES:
-        w = model.calibrate_flow_speed(b.r, b.rs, "B1")
-        d = _rel(w, theory.escape_speed(b.r, b.GM))
-        if d > worst:
-            worst, where = d, b.label
+    worst, where = _max_over_bodies(
+        lambda b: _rel(model.calibrate_flow_speed(b.r, b.rs, "B1"),
+                       theory.escape_speed(b.r, b.GM)))
     return ("역산 w(r) == 탈출속도 sqrt(2GM/r)", worst < TOL,
             f"최대 상대오차 {mp.nstr(worst, 3)} ({where})")
 
 
 def check_forward_ratio_matches_schwarzschild():
     """순방향 예측이 Schwarzschild 와 정확히 일치하는가."""
-    worst, where = mp.mpf(0), ""
-    for b in BODIES:
-        d = _rel(model.time_ratio(b.r, b.GM), theory.schwarzschild_ratio(b.r, b.rs))
-        if d > worst:
-            worst, where = d, b.label
+    worst, where = _max_over_bodies(
+        lambda b: _rel(model.time_ratio(b.r, b.GM), theory.schwarzschild_ratio(b.r, b.rs)))
     return ("순방향 t(r)/t(inf) == Schwarzschild", worst < TOL,
             f"최대 상대오차 {mp.nstr(worst, 3)} ({where})")
 
 
 def check_potential_and_field():
     """Phi = -w^2/2 와 g = w dw/dr 가 Newton 값과 맞는가."""
-    worst_phi = worst_g = mp.mpf(0)
-    for b in BODIES:
-        worst_phi = max(worst_phi, _rel(model.potential(b.r, b.GM),
-                                        theory.newton_potential(b.r, b.GM)))
-        worst_g = max(worst_g, _rel(model.field(b.r, b.GM),
-                                    theory.newton_field(b.r, b.GM)))
+    worst_phi, _ = _max_over_bodies(
+        lambda b: _rel(model.potential(b.r, b.GM), theory.newton_potential(b.r, b.GM)))
+    worst_g, _ = _max_over_bodies(
+        lambda b: _rel(model.field(b.r, b.GM), theory.newton_field(b.r, b.GM)))
     return ("Phi = -w^2/2, g = w dw/dr 가 Newton 과 일치",
             worst_phi < TOL and worst_g < TOL,
             f"Phi 최대오차 {mp.nstr(worst_phi, 3)}, g 최대오차 {mp.nstr(worst_g, 3)} "
@@ -116,14 +122,12 @@ def check_vacuum_closure():
     1차원 구성이 스스로 낳지 못하는 유일한 재료가 이것이고,
     이것이 w 의 r^(-1/2) 의존성을 고정한다.
     """
-    worst, where = mp.mpf(0), ""
-    for b in BODIES:
+    def normalized_residual(b):
         lap = model.radial_laplacian_of_potential(b.r, b.GM)
-        # 같은 지점의 g/r 규모로 무차원화해서 비교한다.
-        scale = abs(theory.newton_field(b.r, b.GM)) / b.r
-        d = abs(lap) / scale
-        if d > worst:
-            worst, where = d, b.label
+        scale = abs(theory.newton_field(b.r, b.GM)) / b.r    # 같은 지점의 g/r 규모
+        return abs(lap) / scale
+
+    worst, where = _max_over_bodies(normalized_residual)
     return ("진공 닫힘 조건 laplacian(-w^2/2) = 0", worst < mp.mpf("1e-20"),
             f"최대 규격화 잔차 {mp.nstr(worst, 3)} ({where})")
 

@@ -4,9 +4,16 @@
 자릿수 소거 문제가 없다. 여기서는 float/numpy 를 쓴다.
 """
 
+import sys
+
 import matplotlib
 
-matplotlib.use("Agg")
+# CLI(run_all.py)는 디스플레이가 없는 헤드리스 환경일 수 있어 Agg 가 필요하다.
+# 반대로 Jupyter/Colab 은 노트북을 열 때 이미 IPython 이 백엔드를 골라 두므로,
+# 여기서 Agg 로 덮어쓰면 노트북 안에서 plt.show() 를 쓰는 다른 셀이 깨진다.
+# "이미 IPython 이 로드돼 있는가" 로 두 경우를 가른다.
+if "IPython" not in sys.modules:
+    matplotlib.use("Agg")
 
 import matplotlib.font_manager as fm
 import matplotlib.pyplot as plt

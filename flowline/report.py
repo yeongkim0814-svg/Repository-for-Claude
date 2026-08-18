@@ -14,59 +14,64 @@ def _rule(width=110, ch="-"):
     return ch * width
 
 
+def _body_table(title, header_line, width, row_fn, notes, bodies=BODIES):
+    """BODIES 를 한 줄씩 훑는 표의 공통 골격.
+
+    table_time_dilation 과 table_potential_and_field 가 열 구성만 다르고
+    '제목 + 헤더 + 구분선 + 행들 + 각주' 뼈대를 그대로 반복하던 것을 모았다.
+    table_conventions 는 (규약 x u) 이중 순회라 구조가 달라 별도로 둔다.
+    """
+    lines = [title, "", header_line, _rule(width)]
+    lines += [row_fn(b) for b in bodies]
+    lines += [""] + list(notes)
+    return "\n".join(lines)
+
+
 def table_time_dilation():
     """모델 예측 t(r)/t(inf) 를 Schwarzschild 및 교과서 1차식과 비교."""
-    lines = [
-        "[표 1] 시간 지연 비  t(r)/t(inf)",
-        "",
-        f"{'천체 / 위치':<40} {'r/r_s':>12} {'w/c':>12} "
-        f"{'모델 = Schwarzschild':>24} {'모델-Schw (상대)':>18} {'1차근사 오차':>14}",
-        _rule(126),
-    ]
-    for b in BODIES:
+    def row(b):
         r, rs, GM = b.r, b.rs, b.GM
         w = model.flow_speed(r, GM)
         rm = model.time_ratio(r, GM)
         rt = theory.schwarzschild_ratio(r, rs)
         resid = abs(rm - rt) / rt
         weak_err = abs(theory.weak_field_ratio(r, GM) - rt) / rt
-        lines.append(
-            f"{b.label:<40} {_fmt(r / rs, 6):>12} {_fmt(w / C, 6):>12} "
-            f"{mp.nstr(rm, 18):>24} {_fmt(resid, 3):>18} {_fmt(weak_err, 3):>14}"
-        )
-    lines += [
-        "",
-        "  * '모델'과 'Schwarzschild' 열이 하나인 이유: 두 값이 60자리 전 자리에서",
-        "    같아 따로 쓸 내용이 없다. 근사가 아니라 항등이다.",
-        "  * 마지막 열은 교과서 1차식 1+Phi/c^2 이 Schwarzschild 에서 벗어난 정도.",
-        "    이 모델은 그 오차를 갖지 않는다.",
-    ]
-    return "\n".join(lines)
+        return (f"{b.label:<40} {_fmt(r / rs, 6):>12} {_fmt(w / C, 6):>12} "
+                f"{mp.nstr(rm, 18):>24} {_fmt(resid, 3):>18} {_fmt(weak_err, 3):>14}")
+
+    return _body_table(
+        "[표 1] 시간 지연 비  t(r)/t(inf)",
+        f"{'천체 / 위치':<40} {'r/r_s':>12} {'w/c':>12} "
+        f"{'모델 = Schwarzschild':>24} {'모델-Schw (상대)':>18} {'1차근사 오차':>14}",
+        126, row,
+        [
+            "  * '모델'과 'Schwarzschild' 열이 하나인 이유: 두 값이 60자리 전 자리에서",
+            "    같아 따로 쓸 내용이 없다. 근사가 아니라 항등이다.",
+            "  * 마지막 열은 교과서 1차식 1+Phi/c^2 이 Schwarzschild 에서 벗어난 정도.",
+            "    이 모델은 그 오차를 갖지 않는다.",
+        ],
+    )
 
 
 def table_potential_and_field():
     """Phi 와 g 의 모델-Newton 대응."""
-    lines = [
-        "[표 2] 포텐셜과 중력장 -- Phi = -w^2/2,  g = w dw/dr",
-        "",
-        f"{'천체 / 위치':<40} {'Phi = -w^2/2 [J/kg]':>24} {'-GM/r 상대오차':>16} "
-        f"{'g = w dw/dr [m/s^2]':>24} {'-GM/r^2 상대오차':>16}",
-        _rule(124),
-    ]
-    for b in BODIES:
+    def row(b):
         r, GM = b.r, b.GM
         phi_m, phi_n = model.potential(r, GM), theory.newton_potential(r, GM)
         g_m, g_n = model.field(r, GM), theory.newton_field(r, GM)
-        lines.append(
-            f"{b.label:<40} {_fmt(phi_m, 10):>24} {_fmt(abs(phi_m - phi_n) / abs(phi_n), 3):>16} "
-            f"{_fmt(g_m, 10):>24} {_fmt(abs(g_m - g_n) / abs(g_n), 3):>16}"
-        )
-    lines += [
-        "",
-        "  * g 는 해석해를 대입한 것이 아니라 흐름장 w(r) 를 수치 미분해 얻었다.",
-        "    즉 '중력장 = 흐름의 이류 가속도 Dw/Dt' 가 실제로 성립함을 보인 것.",
-    ]
-    return "\n".join(lines)
+        return (f"{b.label:<40} {_fmt(phi_m, 10):>24} {_fmt(abs(phi_m - phi_n) / abs(phi_n), 3):>16} "
+                f"{_fmt(g_m, 10):>24} {_fmt(abs(g_m - g_n) / abs(g_n), 3):>16}")
+
+    return _body_table(
+        "[표 2] 포텐셜과 중력장 -- Phi = -w^2/2,  g = w dw/dr",
+        f"{'천체 / 위치':<40} {'Phi = -w^2/2 [J/kg]':>24} {'-GM/r 상대오차':>16} "
+        f"{'g = w dw/dr [m/s^2]':>24} {'-GM/r^2 상대오차':>16}",
+        124, row,
+        [
+            "  * g 는 해석해를 대입한 것이 아니라 흐름장 w(r) 를 수치 미분해 얻었다.",
+            "    즉 '중력장 = 흐름의 이류 가속도 Dw/Dt' 가 실제로 성립함을 보인 것.",
+        ],
+    )
 
 
 def table_conventions():

@@ -1,7 +1,10 @@
 # 흐르는-직선(flow-line) 시간지연 모델
 
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/yeongkim0814-svg/Repository-for-Claude/blob/claude/time-delay-model-design-f8jlrj/flow_line_model.ipynb)
+
 낮은 차원에서 출발한 시간 지연 모델을 형식화하고, Schwarzschild 해 및
-Newton 중력과 수치로 비교한다.
+Newton 중력과 수치로 비교한다. 위 배지를 누르면 설치 없이 바로 코랩에서
+실행할 수 있다 (`flow_line_model.ipynb`).
 
 ## 모델
 
@@ -91,6 +94,11 @@ Schwarzschild 답을 알고 되짚은 것이므로, 순방향 예측은 반드�
 
 ## 실행
 
+**설치 없이:** 위 "Open in Colab" 배지 → 셀을 위에서부터 실행하면 저장소를
+클론하고, 한글 폰트를 설치하고, 표와 그림과 테스트를 전부 돌려 준다.
+
+**로컬:**
+
 ```bash
 pip install numpy matplotlib mpmath
 python3 run_all.py            # 표를 출력하고 report.txt + figures/*.png 생성
@@ -118,15 +126,16 @@ apt-get install fonts-noto-cjk && rm -rf ~/.cache/matplotlib
 ## 구성
 
 ```
+flow_line_model.ipynb   코랩 노트북 (설치 없이 바로 실행)
 flowline/
   constants.py    물리 상수, 가상 천체 정의
   kinematics.py   1차원 구성의 순수 특수상대론 부분 (부스트, 네 규약, 역산)
   theory.py       비교 대상 (Schwarzschild, Newton)
   model.py        역방향 교정 / 순방향 예측, Φ, g, 지평선, 진공 닫힘
-  checks.py       정합성 검사 10종
-  report.py       비교표 3종
-  plots.py        그림 3종
-run_all.py        진입점
+  checks.py       정합성 검사 10종 (BODIES 순회는 _max_over_bodies 로 공유)
+  report.py       비교표 3종 (BODIES 표는 _body_table 골격 공유)
+  plots.py        그림 3종 (스크립트/노트북 겸용 백엔드 처리)
+run_all.py        CLI 진입점
 tests/            pytest 스위트
 ```
 
