@@ -94,8 +94,13 @@ Schwarzschild 답을 알고 되짚은 것이므로, 순방향 예측은 반드�
 
 ## 실행
 
-**설치 없이:** 위 "Open in Colab" 배지 → 셀을 위에서부터 실행하면 저장소를
-클론하고, 한글 폰트를 설치하고, 표와 그림과 테스트를 전부 돌려 준다.
+**설치 없이:** 위 "Open in Colab" 배지 → 셀을 위에서부터 실행하면 한글
+폰트를 설치하고, 표와 그림과 테스트를 전부 돌려 준다. 이 노트북은
+저장소를 클론하지 않는다 — `flowline` 패키지 소스를 `%%writefile` 셀에
+그대로 담아 뒀다. (처음엔 `git clone` 방식이었는데, 이 저장소가
+비공개라 코랩 실행 환경에 GitHub 인증 수단이 없어 `exit status 128` 로
+실패했다. 배지를 눌러 노트북을 "여는" 것과 코드 셀 안에서 `git clone`
+하는 것은 별개의 인증 경로라, 전자가 되더라도 후자는 안 될 수 있다.)
 
 **로컬:**
 
@@ -126,7 +131,7 @@ apt-get install fonts-noto-cjk && rm -rf ~/.cache/matplotlib
 ## 구성
 
 ```
-flow_line_model.ipynb   코랩 노트북 (설치 없이 바로 실행)
+flow_line_model.ipynb   코랩 노트북 (클론 없이 소스를 내장, 설치 없이 바로 실행)
 flowline/
   constants.py    물리 상수, 가상 천체 정의
   kinematics.py   1차원 구성의 순수 특수상대론 부분 (부스트, 네 규약, 역산)
@@ -138,6 +143,11 @@ flowline/
 run_all.py        CLI 진입점
 tests/            pytest 스위트
 ```
+
+**유지보수 주의:** `flow_line_model.ipynb` 의 `%%writefile` 셀들은
+`flowline/*.py` 와 `tests/test_model.py` 를 그대로 복사해 둔 것이다.
+저장소 쪽 소스를 고치면 노트북도 다시 만들어야 두 사본이 어긋나지
+않는다.
 
 ## 그림
 
