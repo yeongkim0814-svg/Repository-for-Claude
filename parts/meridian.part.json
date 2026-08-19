@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "id": "meridian_engine",
+  "packId": "meridian_pack",
+  "displayName": { "en": "Meridian", "ko": "메리디안" },
+  "description": {
+    "en": "Vacuum-optimized upper stage engine. Very high efficiency, very low thrust-to-weight — useless for liftoff, excellent for transfers.",
+    "ko": "진공 특화 상단 엔진. 효율은 매우 높지만 추력 대비 무게가 무거워 이륙에는 쓸 수 없고, 궤도 전이 단계에서 진가를 발휘한다."
+  },
+  "pickCategories": ["Engines"],
+  "width": 2,
+  "height": 3,
+  "mass": 5.0,
+
+  "engine": {
+    "thrust": 60.0,
+    "isp": 330.0,
+    "thrustNormal": [0, 1],
+    "thrustPosition": [0, -3.0],
+    "hasGimbal": true,
+    "gimbalTorque": "throttle * 3",
+    "throttleable": true,
+    "heatOn": true
+  },
+
+  "fuel": {
+    "resourceType": "Liquid Fuel",
+    "resourceGuid": "228bca42e456ecb4cb87cdd837fa81fe",
+    "hasOwnTank": false,
+    "sourceFlow": "up"
+  },
+
+  "attachPoints": [
+    { "name": "top",    "position": [0, 0],    "surfaceId": "Fuselage", "breakForce": 1500 },
+    { "name": "bottom", "position": [0, -3.0], "surfaceId": "Fuselage", "breakForce": 800 }
+  ],
+
+  "colliders": [
+    { "type": "polygon", "name": "body",   "points": [[-1, 0], [1, 0], [0.6, -1.6], [-0.6, -1.6]] },
+    { "type": "polygon", "name": "nozzle", "points": [[-0.6, -1.6], [0.6, -1.6], [1.0, -3.0], [-1.0, -3.0]] }
+  ],
+
+  "textures": [
+    { "name": "meridian_body",   "file": "assets/textures/meridian_body.png",   "size": [256, 256], "tiling": "vertical" },
+    { "name": "meridian_nozzle", "file": "assets/textures/meridian_nozzle.png", "size": [256, 256], "tiling": "vertical" }
+  ],
+
+  "effects": {
+    "flame": { "prefab": "Engine Flame", "position": [0, -3.0], "scale": 0.8, "color": "#7FD4FF" },
+    "sound": { "clip": "Engine Loop", "volume": 0.7 }
+  },
+
+  "notes": [
+    "새 ResourceType을 만들지 않고 스톡 액체연료를 그대로 쓴다 → 스톡 탱크와 호환되고 모바일에서도 안전하다.",
+    "수치는 tools/validate_parts.py 의 밸런스 규칙을 통과해야 한다. 값을 바꾸면 검증기와 spec_sheet를 다시 실행할 것."
+  ]
+}

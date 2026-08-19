@@ -1,0 +1,32 @@
+{
+  "_comment": [
+    "SFS 스톡 엔진 실측 수치. 출처: 공식 Modding Toolkit의 파트 프리팹",
+    "Stef-Moroyna/Spaceflight-Simulator--ModdingToolkit",
+    "Modding Toolkit/Assets/Resources/Parts/Engines/*.prefab 의 EngineModule 직렬화 값.",
+    "밸런스 검증(tools/validate_parts.py)의 기준 데이터이므로 임의로 고치지 말 것."
+  ],
+  "gravity": 9.80665,
+  "tankDryMassPercent": 0.1,
+  "liquidFuelResourceGuid": "228bca42e456ecb4cb87cdd837fa81fe",
+  "engines": [
+    { "name": "Kolibri",  "thrust": 15,  "isp": 260, "mass": 0.5,  "thrustPosition": [0, -1.5], "hasGimbal": true },
+    { "name": "Valiant",  "thrust": 40,  "isp": 280, "mass": 2.0,  "thrustPosition": [0, -2.0], "hasGimbal": true },
+    { "name": "Frontier", "thrust": 100, "isp": 290, "mass": 6.0,  "thrustPosition": [0, -3.5], "hasGimbal": true },
+    { "name": "Hawk",     "thrust": 120, "isp": 240, "mass": 3.5,  "thrustPosition": [0, -3.0], "hasGimbal": true },
+    { "name": "Titan",    "thrust": 400, "isp": 240, "mass": 12.0, "thrustPosition": [0, -4.0], "hasGimbal": true }
+  ],
+  "referenceStages": [
+    {
+      "name": "소형 상단",
+      "_comment": "연료탱크 습질량 20t(건조 10%) + 페이로드 5t. 작은 탐사선 급.",
+      "tankWetMass": 20.0,
+      "payloadMass": 5.0
+    },
+    {
+      "name": "중형 전이단",
+      "_comment": "연료탱크 습질량 90t + 페이로드 20t. 엔진 자체 질량의 영향이 작아져 ISP 차이가 그대로 드러난다.",
+      "tankWetMass": 90.0,
+      "payloadMass": 20.0
+    }
+  ]
+}

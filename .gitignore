@@ -1,0 +1,19 @@
+# 게임 DLL(저작권상 재배포 금지) 과 빌드 산출물
+unity/Dependencies/
+unity/bin/
+unity/obj/
+*.user
+
+# 유니티 프로젝트 로컬 산출물 (툴킷 프로젝트는 이 저장소에 넣지 않는다)
+Library/
+Temp/
+Logs/
+ModBuilder/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# 파이썬
+__pycache__/
+*.pyc

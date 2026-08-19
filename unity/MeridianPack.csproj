@@ -1,0 +1,52 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    선택적 코드 어셈블리 프로젝트 (PC 전용).
+    파트팩만으로 Meridian 은 완전히 동작하므로 이 프로젝트는 빌드하지 않아도 된다.
+    자세한 배경은 unity/README.md 참고.
+
+    빌드하려면 게임의 Managed 폴더 경로를 넘긴다:
+      msbuild unity/MeridianPack.csproj /p:SfsManagedDir="C:\...\Spaceflight Simulator_Data\Managed"
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <AssemblyName>MeridianPack</AssemblyName>
+    <RootNamespace>MeridianPack</RootNamespace>
+    <LangVersion>latest</LangVersion>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <!-- 게임 DLL 위치. 명령줄이나 로컬 env.props 로 덮어쓴다. -->
+    <SfsManagedDir Condition="'$(SfsManagedDir)' == ''">Dependencies</SfsManagedDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Scripts\**\*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Assembly-CSharp">
+      <HintPath>$(SfsManagedDir)\Assembly-CSharp.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine">
+      <HintPath>$(SfsManagedDir)\UnityEngine.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>$(SfsManagedDir)\UnityEngine.CoreModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>$(SfsManagedDir)\Newtonsoft.Json.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <!-- Harmony 패치를 쓸 경우에만 필요하다. 파트팩 확장에는 보통 불필요.
+    <Reference Include="0Harmony">
+      <HintPath>$(SfsManagedDir)\0Harmony.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    -->
+  </ItemGroup>
+
+</Project>
