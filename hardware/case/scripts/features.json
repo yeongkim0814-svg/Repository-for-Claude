@@ -110,13 +110,42 @@
     }
   },
   "button_spring_pocket_mm": {
-    "_readme": "조립 설명서: 버튼마다 사각 홈에 스프링(bmo-spring.stl, 17.3x24.5x5mm)을 끼운 뒤 버튼을 얹는다. 실배선 2개는 이 스프링 자리 뒤에 스위치를 붙이면 원본 촉감을 그대로 살릴 수 있다 — 정확한 홈 치수/깊이는 'BMO Button Box.stl' 을 아직 따로 측정 안 함(다음 단계).",
-    "status": "TODO"
+    "_readme": "BMO Button Box.stl 을 따로 실측했으나, Button Box의 로컬 좌표계를 front-plate 좌표계로 정확히 정렬하는 시도(5개 파스너 구멍 매칭)가 표준편차 10mm 이상으로 깔끔하게 안 맞아 폐기했다. 대신 훨씬 간단한 방법을 쓴다: 버튼 위치는 이미 front-plate에서 정확히 확보했으므로(buttons_wired), 그 좌표 뒤에 스프링 실측 치수를 그대로 적용한다 — Button Box 좌표계를 거칠 필요가 없다.",
+    "status": "RESOLVED (우회)",
+    "spring_size_mm": {
+      "source_file": "bmo-spring.stl",
+      "length": 17.3,
+      "width": 24.5,
+      "height": 5.0
+    },
+    "decision": "green/blue 버튼 좌표(buttons_wired) 뒤쪽(z 감소 방향, front-plate back 쪽)에 스프링 치수(17.3x24.5x5mm)만큼 포켓을 파고 그 뒤에 실제 스위치를 붙인다. 스프링 자체를 재사용할지, 스위치 액추에이터를 스프링 대신 넣을지는 조립 단계에서 실물로 결정.",
+    "confirmation": "Button Box 자체에서도 17~35mm 대의 사각 포켓들이 실제로 검출됨(예: extent 34.83x22.13mm @ center (3.42,-0.02)) — 스프링 포켓이 존재한다는 조립 설명서 내용과 일치. 다만 이 좌표들을 front-plate 좌표계로 정확히 옮기는 건 위 이유로 포기했고, 우회 방법(버튼 좌표 뒤에 스프링 치수 적용)으로 충분하다고 판단."
   },
   "arm_axle": {
-    "_readme": "조립 설명서: 팔은 'bmo-fastener.stl'(고정 핀, 14x14x11.9mm)으로 소켓에 고정되는 정적 구조 — 원본은 안 움직인다. 우리는 이 고정 핀 자리를 서보 축으로 교체해야 한다. 소켓의 정확한 좌표는 BMO Arm 1/2.stl 과 front-plate/버튼박스 중 어디에 있는지 아직 특정 안 함(다음 단계).",
-    "status": "TODO",
-    "diameter_mm": 3.2
+    "_readme": "BMO Arm 1/2.stl 실측 완료. 어깨 쪽 끝(각 파일의 z 최대 영역)에 지름 ~11mm 원통형 스텁이 있고, 그 안에 파스너(14x14x11.9mm)가 들어가는 사각 블라인드 소켓이 있다. 삽입 축은 그 파츠의 로컬 Y축(스텁 바깥면 y=26.84가 삽입 입구, 안쪽으로 ~10~17mm 파여있음). 양팔이 X만 부호가 반대인 완전 대칭으로 확인됨.",
+    "status": "RESOLVED (팔 쪽 좌표만 — 몸통 쪽 소켓은 원본에 없어 우리가 새로 설계, decision 참고)",
+    "arm1_local": {
+      "stub_center_xz": [
+        -3.36,
+        43.31
+      ],
+      "stub_outer_diameter_mm": 11.0,
+      "insertion_axis": "y",
+      "entrance_y": 26.84,
+      "socket_depth_mm": 11.9
+    },
+    "arm2_local": {
+      "stub_center_xz": [
+        3.35,
+        43.34
+      ],
+      "stub_outer_diameter_mm": 11.0,
+      "insertion_axis": "y",
+      "entrance_y": 26.84,
+      "socket_depth_mm": 11.9
+    },
+    "diameter_mm": 3.2,
+    "decision": "원본은 이 스텁에 고정 핀(bmo-fastener.stl)이 블라인드 소켓으로 박혀 안 움직인다. 우리는 같은 스텁을 재사용하되, 블라인드 사각 소켓을 3.2mm 관통홀로 다시 뚫어 서보 축이 지나가게 한다 — 위치는 원본과 동일(스텁 중심), 형태만 '박는 핀'에서 '관통 축'으로 바꾼다. 몸통(전면판) 쪽에서 이 축이 어디로 나오는지는 우리가 설계하는 새 내부 프레임에서 정한다 — 원본에 이 부분(어깨 소켓의 몸통 쪽 짝)이 없기 때문."
   },
   "internal_cavity": {
     "_readme": "front-plate는 두께 12mm 얇은 전면 셸이라 전자부품 공간이 아니다. bmo-case-support-enforcers.stl(135.5x163.5x57.9mm, z=23.5~81.4)이 원본 내부 프레임에 가깝지만, 원본 뒷판은 받지 않았고 찾지도 않기로 했다.",
