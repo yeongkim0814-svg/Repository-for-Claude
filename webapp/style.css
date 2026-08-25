@@ -1,0 +1,67 @@
+:root {
+  --bg: #0d1b26;
+  --card: #142a38;
+  --line: #23485c;
+  --text: #e8f4f0;
+  --muted: #7fa3ae;
+  --mint: #3fbfa0;
+  --ink: #03231a;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Malgun Gothic", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  padding-bottom: 40px;
+}
+.bar {
+  position: sticky; top: 0; z-index: 5;
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 16px;
+  background: rgba(13,27,38,.92);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--line);
+}
+.spacer { flex: 1; }
+.dot { width: 10px; height: 10px; border-radius: 50%; background: #b5443f; transition: background .2s; }
+.dot.on { background: var(--mint); box-shadow: 0 0 8px var(--mint); }
+.muted { color: var(--muted); font-size: 13px; }
+.small { font-size: 12px; }
+
+main { max-width: 760px; margin: 0 auto; padding: 16px; display: grid; gap: 16px; }
+@media (min-width: 720px) { main { grid-template-columns: 1fr 1fr; } main .card:nth-child(2) { grid-row: span 2; } }
+
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px; }
+.card h2 { margin: 0 0 12px; font-size: 15px; color: var(--mint); font-weight: 700; }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 8px; }
+.row { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+.row.wrap { flex-wrap: wrap; }
+
+button {
+  font: inherit; cursor: pointer; border-radius: 10px; padding: 10px 14px;
+  border: 1px solid var(--line); background: #1b3646; transition: transform .05s;
+}
+button:active { transform: scale(.97); }
+button.ghost { background: #1b3646; color: var(--text); }
+button.ghost.sel { border-color: var(--mint); color: var(--mint); }
+button.primary { background: var(--mint); color: var(--ink); border: 0; font-weight: 700; width: 100%; margin-top: 12px; padding: 14px; }
+
+canvas {
+  width: 100%; display: block; border-radius: 8px; border: 1px solid var(--line);
+  background: #000; image-rendering: pixelated; cursor: crosshair;
+}
+input[type=text], input[type=number], input[type=password] {
+  flex: 1; padding: 10px; border-radius: 10px; border: 1px solid var(--line);
+  background: #0d1b26; color: var(--text); font: inherit;
+}
+input[type=range] { width: 100%; accent-color: var(--mint); }
+label { display: block; font-size: 13px; color: var(--muted); margin-top: 10px; }
+label input { margin-top: 4px; width: 100%; }
+
+.swatch { width: 34px; height: 34px; border-radius: 8px; border: 2px solid transparent; padding: 0; }
+.swatch.sel { border-color: #fff; }
+
+dialog { background: var(--card); color: var(--text); border: 1px solid var(--line); border-radius: 14px; width: min(420px, 92vw); }
+dialog h2 { color: var(--mint); font-size: 16px; margin-top: 0; }

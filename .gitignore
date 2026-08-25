@@ -1,0 +1,13 @@
+# PlatformIO
+firmware/.pio/
+firmware/.vscode/
+.pio/
+
+# 실제 자격증명 (절대 커밋하지 말 것)
+firmware/include/secrets.h
+webapp/config.local.js
+
+# OS / 편집기
+.DS_Store
+Thumbs.db
+*.swp

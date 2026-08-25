@@ -1,0 +1,9 @@
+{
+  "name": "BMO 리모컨",
+  "short_name": "BMO",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0d1b26",
+  "theme_color": "#0d1b26",
+  "icons": []
+}

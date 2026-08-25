@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>BMO 리모컨</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0d1b26">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="bar">
+  <span class="dot" id="dot"></span>
+  <strong>BMO</strong>
+  <span id="statusText" class="muted">연결 안 됨</span>
+  <span class="spacer"></span>
+  <span id="rssi" class="muted"></span>
+  <button id="settingsBtn" class="ghost" title="설정">설정</button>
+</header>
+
+<main>
+  <section class="card">
+    <h2>표정</h2>
+    <div id="presets" class="grid"></div>
+  </section>
+
+  <section class="card">
+    <h2>직접 그리기 <span class="muted" id="sizeHint"></span></h2>
+    <canvas id="canvas"></canvas>
+    <div class="row" id="palette"></div>
+    <div class="row">
+      <label>붓 <input id="brush" type="range" min="1" max="3" value="1"></label>
+      <button id="undoBtn" class="ghost">되돌리기</button>
+      <button id="clearBtn" class="ghost">지우기</button>
+    </div>
+    <div class="row">
+      <input id="textInput" type="text" placeholder="글씨 (한글 가능)" maxlength="40">
+      <button id="textBtn" class="ghost">글씨 넣기</button>
+    </div>
+    <button id="sendBtn" class="primary">BMO 화면에 보내기</button>
+  </section>
+
+  <section class="card">
+    <h2>팔</h2>
+    <input id="armSlider" type="range" min="20" max="160" value="30">
+    <div class="row"><span class="muted">내림</span><span class="spacer"></span><span id="armVal" class="muted">30°</span><span class="spacer"></span><span class="muted">만세</span></div>
+    <div class="row wrap">
+      <button data-arm="down" class="ghost">내림</button>
+      <button data-arm="wave" class="ghost">손 흔들기</button>
+      <button data-arm="hug"  class="ghost">안아주기</button>
+      <button data-arm="up"   class="ghost">만세</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>기타</h2>
+    <div class="row wrap">
+      <button id="sleepBtn" class="ghost">수면모드</button>
+    </div>
+    <label>화면 밝기 <span id="brightVal" class="muted">75%</span>
+      <input id="bright" type="range" min="5" max="100" value="75">
+    </label>
+    <p class="muted small">스모크 아크릴이 빛을 먹으므로 실제로 보면서 맞추세요.</p>
+  </section>
+</main>
+
+<dialog id="settings">
+  <form method="dialog" id="settingsForm">
+    <h2>연결 설정</h2>
+    <label>브로커 주소<input name="host" placeholder="xxxx.s1.eu.hivemq.cloud" required></label>
+    <label>WebSocket 포트<input name="port" type="number" value="8884" required></label>
+    <label>경로<input name="path" value="/mqtt"></label>
+    <label>사용자<input name="user" required></label>
+    <label>비밀번호<input name="pass" type="password"></label>
+    <label>기기 이름<input name="deviceId" value="bmo1" required></label>
+    <p class="muted small">이 정보는 이 브라우저에만 저장됩니다.</p>
+    <div class="row">
+      <button value="cancel" class="ghost">닫기</button>
+      <button id="saveSettings" value="save" class="primary">저장하고 연결</button>
+    </div>
+  </form>
+</dialog>
+
+<script src="https://unpkg.com/mqtt@5.7.0/dist/mqtt.min.js"></script>
+<script type="module" src="app.js"></script>
+</body>
+</html>
