@@ -1,0 +1,39 @@
+{
+  "_readme": "measure.py 실행 후 preview_candidates.png 를 보고 확정한 실제 좌표를 여기 채운다. 단위는 전부 mm, 원본 STL 좌표계 그대로.",
+
+  "front_axis": "y",
+  "front_sign": "+",
+
+  "screen": {
+    "_readme": "measure.py 출력의 screen#N 중 진짜 화면 창을 고른다",
+    "center_mm": [0, 0, 0],
+    "width_mm": 0,
+    "height_mm": 0
+  },
+
+  "buttons_wired": {
+    "_readme": "실배선 2개. measure.py 출력의 btn#N 중 2개를 고른다",
+    "green": { "center_mm": [0, 0, 0], "diameter_mm": 0 },
+    "blue":  { "center_mm": [0, 0, 0], "diameter_mm": 0 }
+  },
+
+  "arm_axle": {
+    "_readme": "팔 관절 소켓 좌표. 몸통을 좌우로 관통하는 축 구멍을 여기 뚫는다",
+    "left_center_mm": [0, 0, 0],
+    "right_center_mm": [0, 0, 0],
+    "diameter_mm": 3.2
+  },
+
+  "back_panel": {
+    "_readme": "뒤판으로 잘라낼 영역 (원본이 한 덩어리인 경우)",
+    "bounds_mm": { "min": [0, 0, 0], "max": [0, 0, 0] },
+    "screw_boss_count": 4
+  },
+
+  "cable_exit": {
+    "_readme": "하단에 새로 뚫을 케이블 개구부 (원본에 없던 기능용 절개)",
+    "center_mm": [0, 0, 0],
+    "width_mm": 20,
+    "height_mm": 10
+  }
+}

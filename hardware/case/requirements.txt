@@ -1,0 +1,8 @@
+# hardware/case/scripts/ 실행에 필요한 파이썬 패키지.
+# Blender나 OpenSCAD 같은 GUI 3D 툴 없이, 순수 파이썬 패키지만으로 STL을 측정하고
+# 편집한다 (설치: pip install -r requirements.txt).
+trimesh>=4.0
+manifold3d>=3.0    # 불리언 연산(구멍/포켓 파내기) 엔진, trimesh가 백엔드로 사용
+numpy>=1.24
+scipy>=1.10        # 연결 요소 분석(버튼 돌기 군집 검출)
+matplotlib>=3.7    # 후보 좌표 미리보기 이미지 저장용
