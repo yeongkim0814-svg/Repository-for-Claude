@@ -3,47 +3,33 @@
 #include <LovyanGFX.hpp>
 #include "board_config.h"
 
-// 보드에 따라 달라지는 부분을 여기서 한 번만 기술한다.
-// 패널/핀을 바꾸려면 include/board_config.h 만 수정하면 된다.
+// 흑백 SSD1306 OLED (128x64, I2C). LovyanGFX가 색상 API를 그대로 받아서
+// 내부적으로 밝기 임계값으로 켬/끔을 판정해주므로, renderer.cpp 는 컬러 패널을
+// 쓸 때와 코드가 거의 같다.
 class BmoDisplay : public lgfx::LGFX_Device {
-    lgfx::Panel_ST7789 _panel;
-    lgfx::Bus_SPI      _bus;
-    lgfx::Light_PWM    _light;
+    lgfx::Panel_SSD1306 _panel;
+    lgfx::Bus_I2C       _bus;
 
 public:
     BmoDisplay() {
         {
             auto cfg = _bus.config();
-            cfg.spi_host    = SPI2_HOST;
-            cfg.spi_mode    = 0;
-            cfg.freq_write  = 40000000;
-            cfg.freq_read   = 16000000;
-            cfg.pin_sclk    = PIN_LCD_SCLK;
-            cfg.pin_mosi    = PIN_LCD_MOSI;
-            cfg.pin_miso    = PIN_LCD_MISO;
-            cfg.pin_dc      = PIN_LCD_DC;
+            cfg.i2c_port    = 0;
+            cfg.freq_write  = OLED_I2C_FREQ;
+            cfg.freq_read   = OLED_I2C_FREQ;
+            cfg.pin_sda     = PIN_OLED_SDA;
+            cfg.pin_scl     = PIN_OLED_SCL;
+            cfg.i2c_addr    = OLED_I2C_ADDR;
             _bus.config(cfg);
             _panel.setBus(&_bus);
         }
         {
             auto cfg = _panel.config();
-            cfg.pin_cs         = PIN_LCD_CS;
-            cfg.pin_rst        = PIN_LCD_RST;
-            cfg.panel_width    = PANEL_WIDTH;
-            cfg.panel_height   = PANEL_HEIGHT;
-            cfg.offset_x       = PANEL_OFFSET_X;
-            cfg.offset_y       = PANEL_OFFSET_Y;
-            cfg.invert         = PANEL_INVERT;
-            cfg.rgb_order      = PANEL_RGB_ORDER_BGR;
+            cfg.panel_width  = OLED_WIDTH;
+            cfg.panel_height = OLED_HEIGHT;
+            cfg.offset_x     = 0;
+            cfg.offset_y     = 0;
             _panel.config(cfg);
-        }
-        {
-            auto cfg = _light.config();
-            cfg.pin_bl      = PIN_LCD_BL;
-            cfg.freq        = 12000;
-            cfg.pwm_channel = 7;
-            _light.config(cfg);
-            _panel.setLight(&_light);
         }
         setPanel(&_panel);
     }

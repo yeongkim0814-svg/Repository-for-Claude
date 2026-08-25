@@ -1,4 +1,4 @@
-// 64x48 도트 캔버스. 손가락/S펜/마우스로 그리고, 글씨를 도트로 굽는다.
+// 64x32 도트 캔버스. 손가락/S펜/마우스로 그리고, 글씨를 도트로 굽는다.
 // 한글은 여기서 브라우저 폰트로 래스터화하므로 BMO 안에 한글 폰트가 필요 없다.
 import { FACE_W, FACE_H, FACE_PIXELS, PALETTE } from './encode.js';
 
@@ -127,7 +127,7 @@ export class DotCanvas {
   }
 }
 
-// 글씨를 64x48 도트로 굽는다. 한글/이모지 모두 브라우저 폰트로 처리된다.
+// 글씨를 64x32 도트로 굽는다. 한글/이모지 모두 브라우저 폰트로 처리된다.
 export function rasterizeText(text, { ink = 1, bg = 0 } = {}) {
   const off = document.createElement('canvas');
   off.width = FACE_W; off.height = FACE_H;

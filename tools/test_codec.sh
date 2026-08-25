@@ -13,10 +13,10 @@ cat > "$TMP/host.cpp" <<CPP
 #include "$PWD/firmware/src/net/codec.cpp"
 #include <cstdio>
 int main(int argc, char** argv) {
-    static uint8_t out[3072];
-    if (!decodeFaceBitmap(argv[1], out, 3072)) { printf("DECODE_FAIL\n"); return 1; }
+    static uint8_t out[2048];
+    if (!decodeFaceBitmap(argv[1], out, 2048)) { printf("DECODE_FAIL\n"); return 1; }
     unsigned long sum = 0;
-    for (int i = 0; i < 3072; ++i) sum += (unsigned long)out[i] * (i + 1);
+    for (int i = 0; i < 2048; ++i) sum += (unsigned long)out[i] * (i + 1);
     printf("%lu\n", sum);
     return 0;
 }

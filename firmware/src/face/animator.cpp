@@ -169,7 +169,7 @@ void Animator::render() {
         for (int i = 0; i < 3; ++i) {
             if (!_status[i][0]) continue;
             int w = _r->textWidth(_status[i]);
-            _r->text((FACE_W - w) / 2, 10 + i * 11, _status[i], COL_INK);
+            _r->text((FACE_W - w) / 2, 1 + i * 9, _status[i], COL_INK);
         }
         return;
     }
@@ -209,68 +209,72 @@ void Animator::drawArc(int cx, int cy, int w, int h, int dir, uint8_t color) {
 void Animator::drawFace(const FaceParams& p) {
     _r->clear(COL_BG);
 
+    // 32px 높이 캔버스(128x64 OLED에 2배로 꽉 찬다)에 맞춘 좌표.
     // 아주 느린 상하 "호흡" — 1px이지만 있고 없고의 차이가 크다
     int yOff = (int)lroundf(sinf(_breathe * 1.6f) * 1.0f);
 
     const int eyeCX[2] = {20, 44};
-    const int eyeCY    = 19 + yOff;
+    const int eyeCY    = 12 + yOff;
     const float open[2] = {p.eyeOpenL, p.eyeOpenR};
 
     for (int i = 0; i < 2; ++i) {
         int gx = (int)lroundf(p.pupilX * 3.0f);
-        int gy = (int)lroundf(p.pupilY * 2.0f);
+        int gy = (int)lroundf(p.pupilY * 1.5f);
         int cx = eyeCX[i] + gx;
         int cy = eyeCY + gy;
         float o = clampf(open[i], 0.0f, 1.4f);
 
         if (o < 0.12f) {
             // 감은 눈 — 살짝 웃는 곡선으로 그려야 "죽은 눈"처럼 안 보인다
-            drawArc(cx, cy - 1, 13, 2, 1, COL_INK);
+            drawArc(cx, cy - 1, 13, 1, 1, COL_INK);
         } else if (p.eyeCurve > 0.5f) {
             // 웃는 눈 (^ ^)
-            drawArc(cx, cy + 2, 13, 4, -1, COL_INK);
+            drawArc(cx, cy + 1, 13, 3, -1, COL_INK);
         } else {
-            int ry = (int)lroundf(8.0f * o);
+            int ry = (int)lroundf(5.0f * o);
             if (ry < 1) ry = 1;
             _r->ellipse(cx, cy, 7, ry, COL_INK);
-            if (o > 0.55f) {                       // 눈동자 하이라이트
-                _r->rect(cx - 4, cy - ry + 2, 2, 2, COL_HI);
+            if (o > 0.55f && ry >= 2) {             // 눈동자 하이라이트
+                _r->px(cx - 3, cy - ry + 1, COL_HI);
             }
         }
 
         if (fabsf(p.browTilt) > 0.15f) {
-            int tilt = (int)lroundf(p.browTilt * 3.0f);
+            int tilt = (int)lroundf(p.browTilt * 2.0f);
             int inner = (i == 0) ? +1 : -1;        // 안쪽 끝이 오르내린다
-            int bx = eyeCX[i] - 6, by = eyeCY - 12;
+            int bx = eyeCX[i] - 6, by = eyeCY - 7;
             for (int k = 0; k < 13; ++k) {
                 float u = (float)k / 12.0f;
                 int yy = by + (int)lroundf((inner > 0 ? (1.0f - u) : u) * tilt);
                 _r->px(bx + k, yy, COL_INK);
-                _r->px(bx + k, yy + 1, COL_INK);
             }
         }
     }
 
     if (p.blush > 0.5f) {
-        _r->ellipse(8,  30 + yOff, 4, 2, COL_BLUSH);
-        _r->ellipse(55, 30 + yOff, 4, 2, COL_BLUSH);
+        // 흑백이라 색으로 볼을 구분할 수 없다 — 옅은 점무늬(디더링)로 존재감만 준다
+        static const int8_t dots[4][2] = {{0,0},{2,0},{1,1},{3,1}};
+        for (int side = 0; side < 2; ++side) {
+            int bx = side == 0 ? 7 : 54, by = 19 + yOff;
+            for (auto& d : dots) _r->px(bx + d[0], by + d[1], COL_BLUSH);
+        }
     }
 
     const int mcx = 32;
-    const int mcy = 34 + yOff;
+    const int mcy = 22 + yOff;
     int mw = (int)lroundf(14 * clampf(p.mouthW, 0.2f, 2.5f));
-    int mh = (int)lroundf(5  * clampf(p.mouthH, 0.2f, 2.5f));
+    int mh = (int)lroundf(3  * clampf(p.mouthH, 0.2f, 2.5f));
+    if (mh < 1) mh = 1;
 
     switch (p.mouth) {
-        case MOUTH_SMILE:   drawArc(mcx, mcy - 2, mw, mh, 1, COL_INK); break;
-        case MOUTH_FLAT:    _r->rect(mcx - mw / 2, mcy, mw, 2, COL_INK); break;
-        case MOUTH_OPEN:    _r->ellipse(mcx, mcy + 1, mw / 2, mh, COL_INK); break;
-        case MOUTH_SMALL_O: _r->ellipse(mcx, mcy + 1, 3, (mh < 3 ? 3 : mh), COL_INK); break;
+        case MOUTH_SMILE:   drawArc(mcx, mcy - 1, mw, mh, 1, COL_INK); break;
+        case MOUTH_FLAT:    _r->rect(mcx - mw / 2, mcy, mw, 1, COL_INK); break;
+        case MOUTH_OPEN:    _r->ellipse(mcx, mcy, mw / 2, mh, COL_INK); break;
+        case MOUTH_SMALL_O: _r->ellipse(mcx, mcy, 2, (mh < 2 ? 2 : mh), COL_INK); break;
         case MOUTH_WAVY:
             for (int i = -mw / 2; i <= mw / 2; ++i) {
-                int y = mcy + (int)lroundf(sinf(i * 0.9f) * 1.5f);
+                int y = mcy + (int)lroundf(sinf(i * 0.9f));
                 _r->px(mcx + i, y, COL_INK);
-                _r->px(mcx + i, y + 1, COL_INK);
             }
             break;
         case MOUTH_GRIN:
@@ -278,17 +282,17 @@ void Animator::drawFace(const FaceParams& p) {
             for (int i = -mw / 2; i <= mw / 2; ++i) {
                 float u = (float)i / (float)(mw / 2);
                 int bottom = mcy + (int)lroundf(mh * (1.0f - u * u));
-                _r->vline(mcx + i, mcy - 2, bottom - mcy + 3, COL_INK);
+                _r->vline(mcx + i, mcy - 1, bottom - mcy + 2, COL_INK);
             }
             break;
         case MOUTH_CAT:     // ω 모양
-            drawArc(mcx - mw / 4, mcy, mw / 2, mh - 1, 1, COL_INK);
-            drawArc(mcx + mw / 4, mcy, mw / 2, mh - 1, 1, COL_INK);
+            drawArc(mcx - mw / 4, mcy, mw / 2, mh, 1, COL_INK);
+            drawArc(mcx + mw / 4, mcy, mw / 2, mh, 1, COL_INK);
             break;
     }
 
     if (_sleepPhase > 0.8f) {                      // 수면모드일 때 떠오르는 Z
-        int t = (int)(_breathe * 2.0f) % 3;
-        _r->text(48, 8 - t, "Z", COL_INK);
+        int t = (int)(_breathe * 2.0f) % 2;
+        _r->text(50, 1 - t, "Z", COL_INK);
     }
 }
