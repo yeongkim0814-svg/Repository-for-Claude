@@ -20,5 +20,19 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-BMO 는 Cartoon Network 의 캐릭터입니다. 이 프로젝트는 비상업적 개인 제작물이며,
-케이스 3D 모델은 원본 제작자의 라이선스를 따릅니다 (hardware/case/CREDITS.md 참고).
+---
+
+**위 MIT 라이선스는 코드에만 적용됩니다** (`firmware/`, `webapp/`,
+`hardware/case/scripts/`의 파이썬 스크립트).
+
+**`hardware/case/`의 3D 모델(원본 STL과 `fit_internals.py`가 생성하는 가공된
+STL 전부)은 MIT가 아니라 CC BY-NC-SA (Attribution-NonCommercial-ShareAlike)
+라이선스**를 따릅니다 — Printables에서 받은 원본 모델의 라이선스 조건을
+그대로 이어받습니다. 즉 이 케이스 모델(원본이든 가공본이든)은:
+- 출처를 표시해야 하고 (제작자: Popandsicle, [원본 링크](https://www.printables.com/model/1139445-adventure-time-bmo-figure-interactive))
+- 비상업적 목적으로만 쓸 수 있고
+- 이걸 다시 고쳐서 배포할 때도 같은 CC BY-NC-SA 조건을 유지해야 합니다.
+
+자세한 내용은 [`hardware/case/CREDITS.md`](hardware/case/CREDITS.md) 참고.
+
+BMO 는 Cartoon Network 의 캐릭터입니다. 이 프로젝트는 비상업적 개인 제작물입니다.

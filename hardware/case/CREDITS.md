@@ -5,11 +5,15 @@
 | 모델 이름 | Adventure Time BMO Figure (Interactive) |
 | 제작자 | Popandsicle |
 | URL | https://www.printables.com/model/1139445-adventure-time-bmo-figure-interactive |
-| 라이선스 | **TBD** — 이 세션에서 printables.com 아웃바운드가 막혀 있어 라이선스 배지를 직접 확인하지 못했다. 페이지에서 확인 후 이 표를 채운다. |
+| 라이선스 | **CC BY-NC-SA** (Attribution – NonCommercial – ShareAlike) — 사용자가 Printables 페이지에서 직접 확인 |
 | 받은 날짜 | 2026-08-25 |
 | 사용 범위 | 몸통 전면판(`bmo-front-plate.stl`), 버튼 4종, D-패드, 팔 2개, 다리, 로고/벤트 패널, 파스너·스프링 등 총 17개 파츠를 받아 사용. 원본 킷은 60개 이상 파츠로 구성되며, 그중 일부만 받았다. |
 
-라이선스가 파생물 재배포를 금지하면 이 리포지토리에는 **원본 STL을 커밋하지 않고** 출처 링크만 남기며, 개조 스크립트(`scripts/`)만 공개한다. 사용자가 각자 원본을 받아 스크립트를 돌리는 방식으로 전환한다.
+**CC BY-NC-SA라 파생물 재배포는 허용되지만 조건이 있다**:
+- **출처 표시(BY)** — 이 표가 그 역할을 한다.
+- **비상업적(NC)** — 이 프로젝트는 개인 선물/포트폴리오 목적이라 문제없다. 상업적으로 팔거나 유료 서비스에 쓰면 안 된다.
+- **동일 조건 변경 허락(SA)** — 우리가 이 원본을 가공해서 만든 파생물(`hardware/case/original/`의 원본 STL 자체, 그리고 `fit_internals.py`가 생성하는 `generated/*.stl`)도 **같은 CC BY-NC-SA 라이선스**로 공개해야 한다. 코드(펌웨어·웹앱)는 이 조건과 무관하게 MIT를 유지하되, **하드웨어(케이스) 부분만 CC BY-NC-SA로 명시**한다 — 저장소 루트 `LICENSE`에 반영.
+- 원본이 비상업적 재배포를 허용하므로 **원본 STL을 이 리포지토리에 그대로 커밋해도 된다** (이미 되어 있음).
 
 ## 우리가 바꾸는 부분 (원본 조립 설명서 기준)
 
