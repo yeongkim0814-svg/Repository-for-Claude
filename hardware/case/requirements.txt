@@ -6,3 +6,4 @@ manifold3d>=3.0    # 불리언 연산(구멍/포켓 파내기) 엔진, trimesh�
 numpy>=1.24
 scipy>=1.10        # 연결 요소 분석(버튼 돌기 군집 검출)
 matplotlib>=3.7    # 후보 좌표 미리보기 이미지 저장용
+rtree>=1.0        # mesh.contains() (내부/외부 점 판정)에 필요
