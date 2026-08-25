@@ -1,39 +1,190 @@
 {
-  "_readme": "measure.py 실행 후 preview_candidates.png 를 보고 확정한 실제 좌표를 여기 채운다. 단위는 전부 mm, 원본 STL 좌표계 그대로.",
-
-  "front_axis": "y",
+  "_readme": "hardware/case/original/*.stl 에서 실측한 좌표. 전부 원본 인쇄 축척(front-plate 기준) 그대로다 — fit_internals.py 에서 scale_to_target 을 한 번만 곱해서 최종 치수로 바꾼다. 출처: bmo-front-plate.stl 자동 검출(front_plate_features.png) + Printables 조립 설명서(springs/fasteners 문단).",
+  "source": {
+    "model_url": "https://www.printables.com/model/1139445-adventure-time-bmo-figure-interactive",
+    "author": "Popandsicle",
+    "title": "Adventure Time BMO Figure (Interactive)",
+    "license": "TBD — printables.com 접근이 이 세션에서 막혀 있어 라이선스 배지를 직접 못 봤다. 페이지에서 확인해서 hardware/case/CREDITS.md 에 기록할 것."
+  },
+  "scale_to_target": {
+    "_readme": "몸통(앉은 자세, 다리 제외) 기준 100mm로 맞춘다. front-plate 원본 높이 180mm -> 100mm.",
+    "reference": "bmo-front-plate.stl height_mm",
+    "original_mm": 180.0,
+    "target_mm": 100.0,
+    "factor": 0.5556
+  },
+  "front_axis": "z",
   "front_sign": "+",
-
+  "front_plate_bounds_mm": {
+    "min": [
+      -67.5,
+      -90.0,
+      0.0
+    ],
+    "max": [
+      67.5,
+      90.0,
+      12.0
+    ]
+  },
   "screen": {
-    "_readme": "measure.py 출력의 screen#N 중 진짜 화면 창을 고른다",
-    "center_mm": [0, 0, 0],
-    "width_mm": 0,
-    "height_mm": 0
+    "_readme": "front-plate에 2단으로 파인 베젤 자리 (원본에서 확인, 화면 자체는 원래 별도 삽입 파츠인 'BMO Logo Fill.stl'이 붙는 자리로 추정 — 정확한 하위 위치는 미확정, 아래 참고).",
+    "bezel_outer": {
+      "center_mm": [
+        0.0,
+        -37.5,
+        4.0
+      ],
+      "width_mm": 109,
+      "height_mm": 79
+    },
+    "bezel_inner_step": {
+      "center_mm": [
+        0.0,
+        -37.5,
+        6.0
+      ],
+      "width_mm": 117.11,
+      "height_mm": 85.07
+    },
+    "logo_fill_size_hint_mm": {
+      "width": 91.6,
+      "height": 33.9,
+      "note": "BMO Logo Fill.stl 자체 치수 — 베젤 안에서 정확히 어디 붙는지는 front-plate 표면과 동일 평면이라 자동 검출로 못 찾음. bezel 중심(0,-37.5)에 맞춰 임시로 가정, 실물 사진과 대조 필요."
+    }
   },
-
   "buttons_wired": {
-    "_readme": "실배선 2개. measure.py 출력의 btn#N 중 2개를 고른다",
-    "green": { "center_mm": [0, 0, 0], "diameter_mm": 0 },
-    "blue":  { "center_mm": [0, 0, 0], "diameter_mm": 0 }
+    "_readme": "실배선 2개. 원본 부품 이름 그대로 색으로 매칭 — 추측 아님.",
+    "green": {
+      "source_file": "BMO Green Button.stl",
+      "center_mm": [
+        42.5,
+        44.0,
+        2.0
+      ],
+      "size_mm": [
+        16.6,
+        16.6
+      ],
+      "function": "수면모드 토글"
+    },
+    "blue": {
+      "source_file": "BMO  Blue Button.stl",
+      "center_mm": [
+        18.99,
+        39.17,
+        2.0
+      ],
+      "size_mm": [
+        19.67,
+        18.46
+      ],
+      "function": "상태 화면 / 길게 누르면 WiFi 설정 포털"
+    }
   },
-
+  "buttons_dummy_reference": {
+    "_readme": "배선 안 함. 참고용 위치만 기록 (충돌 방지, 나중에 확장하고 싶을 때).",
+    "red": {
+      "source_file": "BMO Red Button.stl",
+      "center_mm": [
+        23.0,
+        62.0,
+        2.0
+      ],
+      "size_mm": [
+        26.6,
+        26.6
+      ]
+    },
+    "d_pad": {
+      "source_file": "BMO D-Pad.stl",
+      "center_mm": [
+        -31.78,
+        40.0,
+        2.0
+      ],
+      "size_mm": [
+        30.6,
+        30.6
+      ]
+    }
+  },
+  "button_spring_pocket_mm": {
+    "_readme": "조립 설명서: 버튼마다 사각 홈에 스프링(bmo-spring.stl, 17.3x24.5x5mm)을 끼운 뒤 버튼을 얹는다. 실배선 2개는 이 스프링 자리 뒤에 스위치를 붙이면 원본 촉감을 그대로 살릴 수 있다 — 정확한 홈 치수/깊이는 'BMO Button Box.stl' 을 아직 따로 측정 안 함(다음 단계).",
+    "status": "TODO"
+  },
   "arm_axle": {
-    "_readme": "팔 관절 소켓 좌표. 몸통을 좌우로 관통하는 축 구멍을 여기 뚫는다",
-    "left_center_mm": [0, 0, 0],
-    "right_center_mm": [0, 0, 0],
+    "_readme": "조립 설명서: 팔은 'bmo-fastener.stl'(고정 핀, 14x14x11.9mm)으로 소켓에 고정되는 정적 구조 — 원본은 안 움직인다. 우리는 이 고정 핀 자리를 서보 축으로 교체해야 한다. 소켓의 정확한 좌표는 BMO Arm 1/2.stl 과 front-plate/버튼박스 중 어디에 있는지 아직 특정 안 함(다음 단계).",
+    "status": "TODO",
     "diameter_mm": 3.2
   },
-
-  "back_panel": {
-    "_readme": "뒤판으로 잘라낼 영역 (원본이 한 덩어리인 경우)",
-    "bounds_mm": { "min": [0, 0, 0], "max": [0, 0, 0] },
-    "screw_boss_count": 4
+  "internal_cavity": {
+    "_readme": "front-plate는 두께 12mm 얇은 전면 셸이라 전자부품 공간이 아니다. bmo-case-support-enforcers.stl(135.5x163.5x57.9mm, z=23.5~81.4)이 원본 내부 프레임에 가깝지만, 원본 뒷판은 받지 않았고 찾지도 않기로 했다.",
+    "decision": "뒷판은 원본을 쓰지 않고 우리가 전자부품 전용으로 새로 설계한다. front-plate의 back 면(z=12)에서 뒤로, front-plate 자체의 기존 나사 보스 5곳(button box 고정용, 아래 참고)과 모서리 마운트 4곳을 재사용해 체결한다.",
+    "case_support_enforcers_ref_mm": {
+      "bounds": {
+        "min": [
+          -67.8,
+          -73.3,
+          23.5
+        ],
+        "max": [
+          67.8,
+          90.2,
+          81.4
+        ]
+      },
+      "note": "참고용 — 실제 내부 유효 깊이가 약 57.9mm까지 나올 수 있다는 근거로만 사용, 이 파츠 자체를 쓰지는 않는다."
+    }
   },
-
   "cable_exit": {
-    "_readme": "하단에 새로 뚫을 케이블 개구부 (원본에 없던 기능용 절개)",
-    "center_mm": [0, 0, 0],
-    "width_mm": 20,
-    "height_mm": 10
+    "_readme": "하단에 새로 뚫을 케이블 개구부 (원본에 없던 기능용 절개). 아직 위치 미정 — internal_cavity 파악 후 결정.",
+    "status": "TODO"
+  },
+  "back_panel": {
+    "_readme": "원본에 없음 — 새로 설계. front-plate 뒷면(z=12)에 우리 부품(OLED/보드/서보/단자대)을 담을 상자형 뒷판을 만들고, 아래 기존 체결 구멍에 나사로 고정한다.",
+    "reuse_mount_points_mm": {
+      "button_box_fasteners": [
+        [
+          41.15,
+          75.8
+        ],
+        [
+          47.43,
+          29.2
+        ],
+        [
+          0.7,
+          75.8
+        ],
+        [
+          -50.77,
+          29.2
+        ],
+        [
+          -50.77,
+          50.8
+        ]
+      ],
+      "corner_mounts": [
+        [
+          55.5,
+          78
+        ],
+        [
+          55.5,
+          -78
+        ],
+        [
+          -55.5,
+          78
+        ],
+        [
+          -55.5,
+          -78
+        ]
+      ]
+    },
+    "status": "TODO — 뒷판 형상은 fit_internals.py 단계에서 설계"
   }
 }

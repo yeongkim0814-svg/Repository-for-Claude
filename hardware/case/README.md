@@ -16,11 +16,21 @@ Printables 나 Thingiverse 에서 **CC-BY / CC-BY-SA 등 재배포 조건이 명
 전부 원본을 그대로 따라간다 — 우리가 임의로 다시 정하지 않는다. 전자부품이 들어갈
 자리만 안쪽에서 깎아 넣는다. 자세한 절차는 [`scripts/README.md`](scripts/README.md) 참고.
 
+**현재 상태**: [Popandsicle의 "Adventure Time BMO Figure (Interactive)"](https://www.printables.com/model/1139445-adventure-time-bmo-figure-interactive)
+에서 17개 파츠(전면판, 버튼 4종, D패드, 팔 2개, 다리 등)를 받아 `hardware/case/original/`
+에 넣었다. `scripts/measure.py`로 전면판을 실측해 화면 베젤·버튼·D패드·나사 보스
+좌표를 전부 확보했고([`features.json`](scripts/features.json)), 조립 설명서를
+확인해 **버튼이 원래 스프링 장착식**이고 **팔은 원래 고정 핀(비가동)**이라는 것도
+확인했다 — 자세한 내용은 [`CREDITS.md`](CREDITS.md) 참고.
+**뒷판은 원본에 없어서 우리가 새로 설계**하기로 했다(전면판의 기존 체결 구멍 재사용).
+
 ## 2. 스케일
 
-전체 높이 **100mm** 로 균일 스케일한다(원본 파일의 기본 출력 크기가 다를 수 있으므로).
-비율 자체는 건드리지 않고 축 3개를 동일한 배율로만 키우거나 줄인다. 그 뒤 슬라이서에서
-내부 치수를 실측해 아래 부품이 들어가는지 확인한다.
+**앉은 자세 기준, 몸통(전면판) 높이 100mm**로 잡는다 — 다리는 앉아 있어서 높이에
+거의 안 보태진다. 전면판 원본이 180mm이므로 축척 계수는 **0.556배**
+(`scripts/features.json`의 `scale_to_target`에 기록됨). 비율 자체는 건드리지 않고
+축 3개를 동일한 배율로 줄인다. 그 뒤 슬라이서에서 내부 치수를 실측해 아래 부품이
+들어가는지 확인한다.
 
 | 부품 | 대략 크기 |
 |---|---|
