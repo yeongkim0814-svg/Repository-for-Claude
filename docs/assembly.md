@@ -17,16 +17,29 @@
 케이스를 출력하기 **전에**, 아크릴 조각을 손으로 화면 위에 들고 눈으로 본다.
 투과율이 맞는지 여기서 판단한다. ([`acrylic.md`](acrylic.md))
 
-## 3. 껍데기 시험 출력
+## 3. STL 가공 실행
+
+프린터가 오기 전에 여기까지는 이미 끝나 있어야 한다 (`hardware/case/scripts/`).
+
+1. `python3 measure.py` 로 원본 실측 → `python3 fit_internals.py` 로 실제 절삭
+   ([`hardware/case/scripts/README.md`](../hardware/case/scripts/README.md))
+2. `hardware/case/generated/` 에 `front_plate_final.stl`, `arm1_final.stl`,
+   `arm2_final.stl`, `back_panel.stl` 이 생성된다
+3. **부품이 실제로 도착하면** `fit_internals.py` 상단의 치수 상수(`OLED_FOOTPRINT_MM`,
+   `BOARD_FOOTPRINT_MM`, `BOARD_OFFSET_XY`, `BUTTON_SWITCH_TARGET_Z` 등)를 실측값으로
+   갱신하고 다시 돌린다 — 지금 값은 BOM 표 기준 1차 배치안이다.
+4. 그 외 원본 그대로 쓰는 파츠(버튼 캡 4종, D-패드, 다리)는 손댈 것 없이 그대로 출력.
+
+## 4. 껍데기 시험 출력
 
 속 빈 케이스만 먼저 뽑아 부품이 들어가는지 확인한다.
-안 들어가면 뒤판을 3~5mm 부풀린다.
+안 들어가면 `fit_internals.py` 의 `BACK_PANEL_DEPTH_MM` 을 키우고 다시 생성한다.
 
-## 4. 출력 · 도색
+## 5. 출력 · 도색
 
 [`painting.md`](painting.md) 참고. 아크릴은 도색이 끝난 뒤 붙인다.
 
-## 5. 최종 조립
+## 6. 최종 조립
 
 1. 디스플레이 보드를 마운트에 고정 (아크릴에서 1~2mm 띄운 상태)
 2. 서보를 마운트에 넣고, 팔 축을 몸통에 관통시켜 양팔을 키 결합
@@ -37,7 +50,7 @@
 6. 동작 재확인 → **그 다음에** 모든 듀폰 커넥터에 글루건
 7. 뒤판 닫고 M2 나사 4개
 
-## 6. 보내기 전 확인
+## 7. 보내기 전 확인
 
 - 48시간 연속 구동 (재부팅·메모리 누수 없는지)
 - 들어서 흔들어도 접촉 불량이 없는지
