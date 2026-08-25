@@ -11,16 +11,27 @@ enum MouthShape : uint8_t {
 };
 
 struct FaceParams {
-    float eyeOpenL = 1.0f;     // 0 = 완전히 감김, 1 = 완전히 뜸
-    float eyeOpenR = 1.0f;
-    float eyeCurve = 0.0f;     // >0 이면 눈이 웃는 아치(^^) 모양이 된다
-    float pupilX   = 0.0f;     // -1 ~ 1 (시선)
-    float pupilY   = 0.0f;
-    float mouthW   = 1.0f;     // 입 크기 배율
-    float mouthH   = 1.0f;
-    uint8_t mouth  = MOUTH_SMILE;
-    float blush    = 0.0f;     // 0 = 없음, 1 = 진하게
-    float browTilt = 0.0f;     // -1 = 화남, +1 = 슬픔 (0이면 눈썹 없음)
+    float eyeOpenL;     // 0 = 완전히 감김, 1 = 완전히 뜸
+    float eyeOpenR;
+    float eyeCurve;     // >0 이면 눈이 웃는 아치(^^) 모양이 된다
+    float pupilX;       // -1 ~ 1 (시선)
+    float pupilY;
+    float mouthW;       // 입 크기 배율
+    float mouthH;
+    uint8_t mouth;
+    float blush;        // 0 = 없음, 1 = 진하게
+    float browTilt;     // -1 = 화남, +1 = 슬픔 (0이면 눈썹 없음)
+
+    // 멤버 기본값을 두면(예: float eyeOpenL = 1.0f) 컴파일러가 C++11 표준일 때
+    // 중괄호 초기화 {1,1,0,...} 가 aggregate-init 로 안 먹는 경우가 있어서
+    // (실제로 ESP32 툴체인에서 발생), 생성자로 기본값을 명시한다.
+    FaceParams(float eyeOpenL_ = 1.0f, float eyeOpenR_ = 1.0f, float eyeCurve_ = 0.0f,
+               float pupilX_ = 0.0f, float pupilY_ = 0.0f, float mouthW_ = 1.0f,
+               float mouthH_ = 1.0f, uint8_t mouth_ = MOUTH_SMILE, float blush_ = 0.0f,
+               float browTilt_ = 0.0f)
+        : eyeOpenL(eyeOpenL_), eyeOpenR(eyeOpenR_), eyeCurve(eyeCurve_),
+          pupilX(pupilX_), pupilY(pupilY_), mouthW(mouthW_), mouthH(mouthH_),
+          mouth(mouth_), blush(blush_), browTilt(browTilt_) {}
 };
 
 enum FaceMode : uint8_t { MODE_FACE, MODE_BITMAP, MODE_STATUS };
