@@ -138,14 +138,24 @@ function drawFace(px) {
 }
 drawFace(null);
 
-// 내장 표정 이름만 받으면, 이름 텍스트로 표시(실제 렌더링은 펌웨어 담당이라 흉내만 낸다)
+// 내장 표정은 펌웨어(FaceParams)와 완전히 동일하게는 못 그리지만,
+// "이름만 텍스트로 뜨는" 문제를 없애려고 눈/입 모양을 대충이나마 도트로 그린다.
+const PRESET_EYES = {
+  happy: 'v', love: '<3', wink: '-)', sad: '.-', angry: '>o<', sleepy: '--',
+  neutral: 'oo', surprised: 'OO', shy: '^^',
+};
 function showPresetName(name) {
-  const px = new Uint8Array(FACE_W * FACE_H);
   fctx.fillStyle = '#000'; fctx.fillRect(0, 0, FACE_W, FACE_H);
   fctx.fillStyle = '#3fbfa0';
-  fctx.font = '8px monospace';
+  fctx.font = 'bold 14px monospace';
   fctx.textAlign = 'center';
-  fctx.fillText(name, FACE_W / 2, FACE_H / 2 + 3);
+  fctx.textBaseline = 'middle';
+  fctx.fillText(PRESET_EYES[name] || name.slice(0, 4), FACE_W / 2, FACE_H / 2 - 3);
+  fctx.font = '6px monospace';
+  fctx.fillText(name, FACE_W / 2, FACE_H - 4);
+}
+function applySleepAndBrightness() {
+  faceCanvas.style.opacity = state.sleeping ? 0.08 : Math.max(0.15, state.brightness / 100);
 }
 
 let client = null;
@@ -154,6 +164,7 @@ try { cfg = JSON.parse(localStorage.getItem('bmo.sim.cfg')) || {}; } catch {}
 for (const k of ['host', 'port', 'path', 'user', 'pass', 'deviceId']) if (cfg[k] !== undefined) $('#' + k).value = cfg[k];
 
 let state = { expression: 'neutral', arm: 30, armPreset: 'down', sleeping: false, brightness: 75 };
+applySleepAndBrightness();
 
 function topic(sub) { return `bmo/${cfg.deviceId}/${sub}`; }
 function setStatus(online, text) {
@@ -222,10 +233,17 @@ $('#connectBtn').onclick = () => {
       }
     } else if (sub === 'arm') {
       if (typeof doc.angle === 'number') { state.arm = doc.angle; state.armPreset = 'custom'; }
-      else if (doc.preset) { state.armPreset = doc.preset; state.arm = doc.preset === 'up' ? 150 : doc.preset === 'down' ? 30 : state.arm; }
+      else if (doc.preset) {
+        // 실제 서보가 없으니 각 프리셋의 "대표 각도"만 흉내낸다.
+        // wave/hug는 원래 왕복 애니메이션이지만, 여기서는 최종 자세 각도로만 표시한다.
+        const ARM_PRESET_ANGLE = { down: 30, up: 150, wave: 110, hug: 90 };
+        state.armPreset = doc.preset;
+        if (doc.preset in ARM_PRESET_ANGLE) state.arm = ARM_PRESET_ANGLE[doc.preset];
+      }
     } else if (sub === 'sys') {
       if (typeof doc.sleep === 'boolean') state.sleeping = doc.sleep;
       if (typeof doc.brightness === 'number') state.brightness = doc.brightness;
+      applySleepAndBrightness();
     }
     publishState();
   });
