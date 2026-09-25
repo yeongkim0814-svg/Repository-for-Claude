@@ -17,7 +17,7 @@ export class Placement {
     this.ctx = ctx;
     this.down = new THREE.Raycaster();
     this.ghost = null;
-    this.ghostMat = new THREE.MeshBasicMaterial({ color: 0x33ff66, transparent: true, opacity: 0.4, depthWrite: false });
+    this.ghostMat = new THREE.MeshBasicMaterial({ color: 0x7fe0a0, transparent: true, opacity: 0.45, depthWrite: false });
   }
 
   /** 표면 히트 지점과 yaw로부터 도구의 월드 자세 계산 */
@@ -77,7 +77,7 @@ export class Placement {
     this.ghost.visible = true;
     this.ghost.position.copy(position);
     this.ghost.quaternion.copy(quaternion);
-    this.ghostMat.color.set(ok ? 0x33ff66 : 0xff3344);
+    this.ghostMat.color.set(ok ? 0x7fe0a0 : 0xff8f9f);
   }
 
   setGhostVisible(v) {

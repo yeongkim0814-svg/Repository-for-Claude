@@ -17,6 +17,10 @@
  *    propertyMeta      : { [key]: { label, min, max, step, unit, rebuild } }
  *                        rebuild:false 이면 값 변경 시 메시/물리를 재생성하지 않음
  *    interactionPorts  : [{ name, type, origin:[x,y,z], direction:[x,y,z] }] (로컬)
+ *                        또는 (props) => [...]  — 속성에 따라 포트 수가 바뀌는 도구(광선 상자)
+ *    optics            : 광학 도메인 응답 (src/tools/optics/common.js 에 규약)
+ *                        { emit(entity)→광선[] (광원),  respond(entity, ray, hit)→{rays, segments} }
+ *                        respond 가 없는 도구는 빛을 흡수(불투명)
  *  ★ footprint(props)  : → {x,y,z} 반(半)크기. 배치 가능 판정과 근접 센서에 사용.
  *                        로컬 원점 = 바닥면 중앙, +Y 위, +Z "정면"(레이저 방향)
  *  ★ buildMesh(props)  : → THREE.Object3D (실제 메시·고스트·손에 든 모습 공용)

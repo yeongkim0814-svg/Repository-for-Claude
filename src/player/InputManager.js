@@ -18,8 +18,12 @@ export class InputManager {
     });
     addEventListener('keyup', (e) => this.down.delete(e.code));
     addEventListener('mousedown', (e) => {
-      if (this.isActive()) this.pressed.add(`Mouse${e.button}`);
+      if (!this.isActive()) return;
+      this.pressed.add(`Mouse${e.button}`);
+      this.down.add(`Mouse${e.button}`);
     });
+    addEventListener('mouseup', (e) => this.down.delete(`Mouse${e.button}`));
+    addEventListener('contextmenu', (e) => this.isActive() && e.preventDefault());
     addEventListener('blur', () => this.clear());
   }
 

@@ -5,13 +5,14 @@
  *
  *  ctx (모든 시스템이 공유하는 컨텍스트)
  *    scene, camera, physics(PhysicsWorld), entities(EntityManager),
- *    beamTracer, staticBlockers, blackboard, engine, ui
+ *    optics(OpticalSystem), staticBlockers, blackboard, engine, ui
  *
  *  한 프레임의 순서
  *    1. physics.update  : 고정 dt 스텝 반복 [플레이어 이동 → 도구 'pre' → Rapier step
  *                         → 충돌 이벤트 수집 → 도구 'post']
  *    2. 카메라를 캐릭터 눈높이에 맞춤
- *    3. entities.update : 도구 시각 갱신 (레이저 빔 추적 등)
+ *    3. optics.update   : 광선 추적 (광원 → 거울·렌즈·유리 respond → 흡수), 광학적 연결 기록
+ *       entities.update : 도구 시각 갱신 (스크린 무늬 그리기 등)
  *    4. engine.update   : 상호작용 엔진 (broad → narrow)
  *    5. stateMachine    : 조준 레이캐스트 + idle/aiming/holding/placing
  *    6. 렌더 (메인 씬 → 깊이 클리어 → 손에 든 도구)
@@ -20,8 +21,11 @@ import * as THREE from 'three';
 import RAPIER from 'rapier';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
+// 도구 정의를 가장 먼저 등록 (찬장 목록 순서 = tools/index.js 의 import 순서)
+import './tools/index.js';
 import { PhysicsWorld } from './physics/PhysicsWorld.js';
-import { BeamTracer } from './physics/BeamTracer.js';
+import { OpticalSystem } from './physics/OpticalSystem.js';
+import { spawnDemo } from './demos.js';
 import { EntityManager } from './core/EntityManager.js';
 import { ToolRegistry } from './core/ToolRegistry.js';
 import { InteractionRegistry } from './interaction/InteractionRegistry.js';
@@ -37,7 +41,6 @@ import { InteractionStateMachine } from './player/InteractionStateMachine.js';
 import { HUD } from './ui/HUD.js';
 import { HeldView } from './ui/HeldView.js';
 import { UIManager } from './ui/UIManager.js';
-import './tools/index.js';
 
 await RAPIER.init();
 // 캔버스 텍스처(칠판·간판)가 둥근 폰트로 그려지도록 웹폰트를 잠깐 기다린다 (오프라인이면 1.5초 후 기본 폰트)
@@ -47,20 +50,25 @@ await Promise.race([
 ]);
 
 // ── 렌더러 / 카메라 ─────────────────────────────────────────
+const params = new URLSearchParams(location.search);
+// ?lowfx : 저사양 모드 (그림자 끔, 픽셀 비율 1) — 내장 그래픽 노트북용
+const LOW_FX = params.has('lowfx');
 const canvas = document.getElementById('viewport');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setPixelRatio(LOW_FX ? 1 : Math.min(devicePixelRatio, 2));
 renderer.setSize(innerWidth, innerHeight);
-renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFShadowMap;
-// Surgeon Simulator 풍 룩: 필름 톤매핑으로 밝지만 날아가지 않는 색 + 환경맵 반사로 광택 플라스틱 질감
-renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 0.95;
+renderer.shadowMap.enabled = !LOW_FX;
+// 부드러운 파스텔 룩
+//  · VSM 그림자: 그림자 가장자리를 가우시안으로 흐려 넓고 부드럽게 번짐 (shadow.radius / blurSamples)
+//  · Neutral 톤매핑: ACES처럼 채도·대비를 누르지 않아 파스텔 색이 그대로 유지됨
+renderer.shadowMap.type = THREE.VSMShadowMap;
+renderer.toneMapping = THREE.NeutralToneMapping;
+renderer.toneMappingExposure = 1.0;
 
 const scene = new THREE.Scene();
 const envMap = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture;
 scene.environment = envMap;
-scene.environmentIntensity = 0.3;
+scene.environmentIntensity = 0.45;
 const camera = new THREE.PerspectiveCamera(72, innerWidth / innerHeight, 0.03, 100);
 scene.add(camera);
 
@@ -68,8 +76,8 @@ scene.add(camera);
 const ctx = { THREE, scene, camera, registry: InteractionRegistry, tools: ToolRegistry };
 ctx.physics = new PhysicsWorld();
 ctx.entities = new EntityManager(ctx);
-ctx.beamTracer = new BeamTracer(ctx);
 Object.assign(ctx, buildLabScene(ctx)); // staticBlockers, blackboard
+ctx.optics = new OpticalSystem(ctx);
 
 const checker = new ProximityChecker();
 registerDefaultStrategies(checker, ctx);
@@ -84,7 +92,7 @@ player.controls.addEventListener('unlock', () => input.clear());
 const hud = new HUD(ctx);
 const heldView = new HeldView(camera);
 heldView.scene.environment = envMap;
-heldView.scene.environmentIntensity = 0.35;
+heldView.scene.environmentIntensity = 0.5;
 addEventListener('keydown', (e) => e.code === 'KeyE' && player.controls.isLocked && heldView.pulse());
 addEventListener('mousedown', () => player.controls.isLocked && heldView.pulse());
 const stateMachine = new InteractionStateMachine(ctx, {
@@ -92,16 +100,8 @@ const stateMachine = new InteractionStateMachine(ctx, {
 });
 Object.assign(ctx, { player, input, stateMachine });
 
-// ── ?demo : 성공 기준 확인용 — 도르래와, 그 기둥을 겨냥한 레이저를 미리 배치 ──
-if (new URLSearchParams(location.search).has('demo')) {
-  const Y = TABLE.height;
-  ctx.entities.spawn(ToolRegistry.get('pulley'), new THREE.Vector3(-0.6, Y, TABLE.z), new THREE.Quaternion());
-  ctx.entities.spawn(
-    ToolRegistry.get('laser'),
-    new THREE.Vector3(0.7, Y, TABLE.z - 0.05),
-    new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI / 2), // +Z → −X
-  );
-}
+// ── ?demo[=slit|mirror|lens|tir] : 프리셋 배치 (src/demos.js) ──
+if (params.has('demo')) spawnDemo(ctx, params.get('demo'));
 
 addEventListener('resize', () => {
   camera.aspect = innerWidth / innerHeight;
@@ -116,7 +116,6 @@ function frame() {
   timer.update();
   const dt = timer.getDelta();
   scene.updateMatrixWorld();
-  ctx.beamTracer.beginFrame();
 
   ctx.physics.update(
     dt,
@@ -127,7 +126,19 @@ function frame() {
     (h) => ctx.entities.fixedUpdate(h, 'post'),
   );
   player.syncCamera();
+  // 확대(우클릭 또는 Z 누르고 있기): mm 단위 간섭 무늬를 테이블 너머에서 보기 위한 쌍안경
+  const zoom = input.isDown('Mouse2') || input.isDown('KeyZ');
+  const fov = THREE.MathUtils.lerp(camera.fov, zoom ? 12 : 72, 1 - Math.exp(-dt * 12));
+  if (Math.abs(fov - camera.fov) > 0.01) {
+    camera.fov = fov;
+    camera.updateProjectionMatrix();
+    player.controls.pointerSpeed = 0.8 * (fov / 72); // 확대 중에는 조준도 정밀하게
+  }
+  heldView.anchor.visible = fov > 40;
+  ctx.optics.renderer.airVisibility = THREE.MathUtils.clamp((fov - 12) / 40, 0.12, 1);
+  document.body.classList.toggle('zoomed', fov < 40);
 
+  ctx.optics.update();      // 광선 추적 (광학 도메인 솔버) → 광학 소자 respond, 광학적 연결 기록
   ctx.entities.update(dt);
   ctx.engine.update(ctx.entities.entities);
   stateMachine.update();
@@ -144,4 +155,4 @@ renderer.setAnimationLoop(frame);
 ui.ready();
 
 // 콘솔 디버깅용: lab.entities.entities, lab.engine.lastReport, lab.registry …
-window.lab = ctx;
+window.lab = Object.assign(ctx, { renderer });

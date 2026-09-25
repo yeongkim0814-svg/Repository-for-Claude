@@ -13,7 +13,7 @@ export class HUD {
     this.badge = document.getElementById('state-badge');
     this.monitor = document.getElementById('monitor-body');
 
-    this.highlight = new THREE.BoxHelper(undefined, 0xffd54a);
+    this.highlight = new THREE.BoxHelper(undefined, 0xffb98a);
     this.highlight.visible = false;
     this.highlight.userData.noRaycast = true;
     ctx.scene.add(this.highlight);
@@ -48,7 +48,7 @@ export class HUD {
     const r = engine.lastReport;
     const lines = [`엔티티 ${entities.length}개 · 검사한 쌍 ${r.pairsChecked}개`];
     if (r.candidates.length === 0) lines.push('<span class="none">Broad phase 후보 없음</span>');
-    for (const c of r.candidates) {
+    for (const c of r.candidates.slice(0, 7)) {
       lines.push(`<span class="hit">● ${esc(c.a.label)} ↔ ${esc(c.b.label)}</span>`);
       lines.push(`&nbsp;&nbsp;broad [${c.contact.domains.join('×')}] ${esc(c.contact.via)}`);
       lines.push(
@@ -57,6 +57,7 @@ export class HUD {
           : `&nbsp;&nbsp;narrow: <span class="miss">등록된 규칙 0개 → 아무 일도 없음</span>`,
       );
     }
+    if (r.candidates.length > 7) lines.push(`<span class="none">… 외 ${r.candidates.length - 7}쌍</span>`);
     this.monitor.innerHTML = lines.join('<br>');
   }
 }

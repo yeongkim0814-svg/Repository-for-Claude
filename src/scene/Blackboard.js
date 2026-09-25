@@ -41,7 +41,7 @@ export class Blackboard {
     this.mesh.add(frame, board, tray, ...chalks);
     this.mesh.userData.targetKind = 'static';
 
-    this.draw((g, w, h) => {
+    this.defaultDraw = (g, w, h) => {
       g.font = '110px Jua, "Comic Sans MS", cursive, sans-serif';
       g.fillText('가상 물리 실험실', 90, 170);
       g.font = '70px Jua, "Comic Sans MS", cursive, sans-serif';
@@ -50,8 +50,14 @@ export class Blackboard {
       g.fillText('d sinθ = mλ', 110, 570);
       g.fillText('ΔU = Q − W', 1100, 330);
       g.globalAlpha = 0.35;
-      g.fillText('Phase 0 — architecture', w - 900, h - 70);
-    });
+      g.fillText('Phase 1 — optics', w - 700, h - 70);
+    };
+    this.reset();
+  }
+
+  /** 기본(장식) 화면으로 되돌린다 */
+  reset() {
+    this.draw(this.defaultDraw);
   }
 
   /** 배경을 다시 칠하고 drawFn(g, w, h)로 내용을 그린다 (분필 스타일 기본값 설정됨). */
@@ -59,7 +65,7 @@ export class Blackboard {
     const { g, canvas } = this;
     const w = canvas.width, h = canvas.height;
     g.globalAlpha = 1;
-    g.fillStyle = '#1f3a2e';
+    g.fillStyle = '#4a6b62'; // 부드러운 세이지 그린
     g.fillRect(0, 0, w, h);
     // 분필 자국 질감
     for (let i = 0; i < 1400; i++) {

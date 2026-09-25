@@ -47,6 +47,7 @@ export class EntityManager {
     this.ctx.physics.removeEntityPhysics(e);
     this.#disposeMesh(e);
     e.state = {};
+    e.refreshPorts();
     this.#buildMesh(e);
     this.#buildPhysics(e);
     e.def.onSpawn?.(e, this.ctx);
@@ -58,6 +59,18 @@ export class EntityManager {
     const meta = e.def.propertyMeta?.[key];
     if (meta?.rebuild === false) e.def.onPropertyChange?.(e, key, this.ctx);
     else this.rebuild(e);
+  }
+
+  /**
+   * 배치된 도구의 방향(yaw)을 바꾼다. 위치는 그대로.
+   * 고정 부품뿐인 도구(광학 소자 등)는 메시와 Rapier 바디를 제자리에서 회전(슬라이더를 끌 때 가벼움),
+   * 움직이는 부품이 있는 도구(도르래)는 새 자세로 재생성한다.
+   */
+  setYaw(e, yaw) {
+    const q = e.transform.quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
+    if (e.def.createPhysics) return this.rebuild(e);
+    e.mesh.quaternion.copy(q);
+    for (const body of e.collider.bodies) body.setRotation({ x: q.x, y: q.y, z: q.z, w: q.w }, true);
   }
 
   fixedUpdate(dt, phase) {

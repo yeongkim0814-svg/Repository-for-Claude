@@ -34,6 +34,7 @@ export const State = Object.freeze({
 const REACH = 3.5;       // 도구/찬장과 상호작용 가능한 거리 (m)
 const PLACE_REACH = 5.0; // 배치 가능한 거리 (m)
 const ROT_STEP = Math.PI / 12; // 15°
+const FINE_STEP = Math.PI / 36; // 5°
 
 export class InteractionStateMachine {
   constructor(ctx, { input, targeting, player, hud, ui, heldView }) {
@@ -143,8 +144,10 @@ export class InteractionStateMachine {
       this.transition(State.HOLDING);
       return this.#holding(t);
     }
-    if (this.input.consume('KeyQ')) this.yaw += ROT_STEP;
-    if (this.input.consume('KeyR')) this.yaw -= ROT_STEP;
+    // Shift를 누르고 있으면 5° 미세 회전 (광학 정렬용)
+    const step = this.input.isDown('ShiftLeft') || this.input.isDown('ShiftRight') ? FINE_STEP : ROT_STEP;
+    if (this.input.consume('KeyQ')) this.yaw += step;
+    if (this.input.consume('KeyR')) this.yaw -= step;
     if (this.input.consume('KeyX')) return this.transition(State.IDLE);
 
     const { def, properties } = this.held;
@@ -156,7 +159,7 @@ export class InteractionStateMachine {
     this.hud.setCrosshair(check.ok ? 'valid' : 'invalid');
     this.hud.setTooltip(
       check.ok
-        ? `E / 좌클릭: 배치 · Q/R: 회전 (${(deg + 360) % 360}°) · X: 반납`
+        ? `E / 좌클릭: 배치 · Q/R: 회전 (${(deg + 360) % 360}°, Shift=5°) · X: 반납`
         : `배치 불가: ${check.reason}\nQ/R: 회전 · X: 반납`,
     );
 

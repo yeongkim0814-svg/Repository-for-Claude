@@ -118,6 +118,8 @@ export class UIManager {
     for (const [key, value] of Object.entries(entity.properties)) {
       this.propBody.appendChild(this.#makeField(entity, key, value, def.propertyMeta?.[key] ?? {}));
     }
+    // 모든 도구 공통: 방향(yaw). 광학 정렬처럼 1° 단위 조절이 필요할 때 사용
+    this.propBody.appendChild(this.#makeYawField(entity));
 
     if (def.readouts) {
       const sec = document.createElement('div');
@@ -187,6 +189,21 @@ export class UIManager {
       tx.addEventListener('change', () => commit(tx.value));
       row.append(tx, unit);
     }
+    return row;
+  }
+
+  #makeYawField(entity) {
+    const row = this.#makeField(entity, '__yaw', Math.round((entity.yaw * 180) / Math.PI), {
+      label: '방향 (yaw)', min: -180, max: 180, step: 1, unit: '°',
+    });
+    row.classList.add('yaw-row');
+    // #makeField 의 commit(속성 변경) 대신 transform 을 바꾸도록 입력 이벤트를 다시 연결
+    const [range, num] = row.querySelectorAll('input');
+    const apply = (v) => this.ctx.entities.setYaw(entity, (Number(v) * Math.PI) / 180);
+    const fresh = (el) => { const c = el.cloneNode(true); el.replaceWith(c); return c; };
+    const r2 = fresh(range), n2 = fresh(num);
+    r2.addEventListener('input', () => { n2.value = r2.value; apply(r2.value); });
+    n2.addEventListener('change', () => { r2.value = n2.value; apply(n2.value); });
     return row;
   }
 

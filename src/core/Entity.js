@@ -44,18 +44,36 @@ export class Entity {
       quaternion: new THREE.Quaternion(),
     };
     this.properties = structuredClone(properties ?? def.defaultProperties);
-    this.interactionPorts = (def.interactionPorts ?? []).map((p) => ({
-      name: p.name,
-      type: p.type,                                   // 예: "beam_output", "rope_attach"
-      origin: new THREE.Vector3(...p.origin),         // 로컬 좌표
-      direction: new THREE.Vector3(...p.direction).normalize(),
-      active: true,                                   // 도구가 끌 수 있음 (레이저 OFF 등)
-    }));
+    this.interactionPorts = [];
+    this.refreshPorts();
     this.mesh = null;
     this.collider = null;
 
     /** 도구 정의가 쓰는 런타임 상태 */
     this.state = {};
+  }
+
+  /**
+   * 포트 목록을 (다시) 만든다. def.interactionPorts 가 함수면 properties 에 따라 달라지는 포트
+   * (예: 광선 상자의 광선 수) → 속성이 바뀌어 재생성될 때 EntityManager 가 호출한다.
+   */
+  refreshPorts() {
+    const src = typeof this.def.interactionPorts === 'function'
+      ? this.def.interactionPorts(this.properties)
+      : this.def.interactionPorts ?? [];
+    this.interactionPorts = src.map((p) => ({
+      name: p.name,
+      type: p.type,                                   // 예: "beam_output", "beam_input", "rope_attach"
+      origin: new THREE.Vector3(...p.origin),         // 로컬 좌표
+      direction: new THREE.Vector3(...p.direction).normalize(),
+      active: true,                                   // 도구가 끌 수 있음 (레이저 OFF 등)
+    }));
+  }
+
+  /** 수평 회전각(yaw, 라디안) — 로컬 +Z(정면)가 월드 +Z에서 돌아간 각 */
+  get yaw() {
+    const f = new THREE.Vector3(0, 0, 1).applyQuaternion(this.transform.quaternion);
+    return Math.atan2(f.x, f.z);
   }
 
   get label() {

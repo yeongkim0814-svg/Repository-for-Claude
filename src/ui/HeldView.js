@@ -60,7 +60,7 @@ export class HeldView {
     const hand = new THREE.Group();
 
     // 소매(청록 수술복) + 장갑 커프
-    const sleeve = new THREE.Mesh(new THREE.CylinderGeometry(0.042, 0.047, 0.13, 20).rotateX(Math.PI / 2).translate(0, 0, 0.11), toy(C.scrubs, { rough: 0.9, clearcoat: 0 }));
+    const sleeve = new THREE.Mesh(new THREE.CylinderGeometry(0.036, 0.04, 0.1, 24).rotateX(Math.PI / 2).translate(0, 0, 0.1), toy(C.scrubs, { rough: 0.9, clearcoat: 0 }));
     const cuff = new THREE.Mesh(new THREE.TorusGeometry(0.045, 0.012, 10, 24), toy(0x74b8f0));
     cuff.position.z = 0.04;
     const wrist = capsule(0.036, 0.05, glove);

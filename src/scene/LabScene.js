@@ -21,7 +21,7 @@ function tileTexture() {
   const g = c.getContext('2d');
   const s = 256;
   for (let i = 0; i < 2; i++) for (let j = 0; j < 2; j++) {
-    g.fillStyle = (i + j) % 2 ? '#e4ecee' : '#f3f7f7';
+    g.fillStyle = (i + j) % 2 ? '#efeaf3' : '#faf7f2'; // 크림 · 옅은 라벤더 체크
     g.fillRect(i * s, j * s, s, s);
     // 타일 가장자리 하이라이트/음영 → 살짝 볼록한 타일
     g.fillStyle = 'rgba(255,255,255,.55)';
@@ -29,8 +29,8 @@ function tileTexture() {
     g.fillStyle = 'rgba(0,40,50,.06)';
     g.fillRect(i * s + 6, j * s + s - 11, s - 12, 5);
   }
-  g.strokeStyle = '#b7c6cb';
-  g.lineWidth = 8;
+  g.strokeStyle = '#e2dcd4';
+  g.lineWidth = 5;
   for (let k = 0; k <= 2; k++) {
     g.beginPath(); g.moveTo(k * s, 0); g.lineTo(k * s, 512); g.stroke();
     g.beginPath(); g.moveTo(0, k * s); g.lineTo(512, k * s); g.stroke();
@@ -76,16 +76,19 @@ export function buildLabScene(ctx) {
   };
 
   // ── 조명: 밝은 병원 조명 + 수술등 ───────────────────────────
-  scene.background = new THREE.Color(0xcdeee8);
-  scene.add(new THREE.HemisphereLight(0xffffff, 0xa9d9cf, 0.75));
-  const sun = new THREE.DirectionalLight(0xfff6ea, 1.4);
+  scene.background = new THREE.Color(0xeaf6f3);
+  scene.fog = new THREE.Fog(0xeaf6f3, 11, 28); // 원경을 옅게 → 부드러운 깊이감
+  // 반구광을 강하게: 그림자 쪽도 어둡게 가라앉지 않고 파스텔 색이 유지됨
+  scene.add(new THREE.HemisphereLight(0xffffff, 0xf3e6ee, 1.35));
+  const sun = new THREE.DirectionalLight(0xfff4ec, 1.1);
   sun.position.set(3, 7, 4);
   sun.castShadow = true;
   sun.shadow.mapSize.set(2048, 2048);
   Object.assign(sun.shadow.camera, { left: -8, right: 8, top: 8, bottom: -8, near: 0.5, far: 20 });
-  sun.shadow.bias = -0.0004;
+  sun.shadow.bias = -0.0002;
   sun.shadow.normalBias = 0.02;
-  sun.shadow.radius = 4;
+  sun.shadow.radius = 14;      // VSM 블러 반경 → 넓고 부드러운 그림자
+  sun.shadow.blurSamples = 20;
   scene.add(sun);
 
   // 수술등 (테이블 위): 천장 기둥 + 관절 팔 + 원형 등갓 + 스포트라이트
@@ -112,13 +115,14 @@ export function buildLabScene(ctx) {
   ring.position.set(0.8, ROOM.height - 0.72, 0);
   surg.add(pole, arm, head, glass, ring);
   addDecor(surg);
-  const spot = new THREE.SpotLight(0xfff8e8, 28, 6, 0.75, 0.7, 1.4);
+  const spot = new THREE.SpotLight(0xfff6ee, 14, 6, 0.8, 0.9, 1.4);
   spot.position.set(TABLE.x + 0.8, ROOM.height - 0.8, TABLE.z);
   spot.target.position.set(TABLE.x, TABLE.height, TABLE.z);
   spot.castShadow = true;
   spot.shadow.mapSize.set(1024, 1024);
   spot.shadow.bias = -0.0005;
-  spot.shadow.radius = 3;
+  spot.shadow.radius = 10;
+  spot.shadow.blurSamples = 16;
   scene.add(spot, spot.target);
 
   // 천장 LED 패널
@@ -170,13 +174,13 @@ export function buildLabScene(ctx) {
   const table = new THREE.Group();
   table.position.set(TABLE.x, 0, TABLE.z);
   table.userData.targetKind = 'static';
-  const top = new THREE.Mesh(rbox(TABLE.halfW * 2, 0.06, TABLE.halfD * 2, 0.025), metal(0xdfe6ea, 0.22));
+  const top = new THREE.Mesh(rbox(TABLE.halfW * 2, 0.06, TABLE.halfD * 2, 0.025), toy(0xf4f1fa, { rough: 0.45, clearcoat: 0.5 })); // 연라벤더 화이트 상판
   top.position.y = TABLE.height - 0.03;
   top.userData.targetKind = 'surface'; // ← 배치 가능 표면
   table.add(top);
   const apron = new THREE.Mesh(rbox(TABLE.halfW * 2 - 0.12, 0.14, TABLE.halfD * 2 - 0.12, 0.04), toy(C.white));
   apron.position.y = TABLE.height - 0.13;
-  const shelf = new THREE.Mesh(rbox(TABLE.halfW * 2 - 0.2, 0.04, TABLE.halfD * 2 - 0.2, 0.015), metal(0xc3ccd1, 0.35));
+  const shelf = new THREE.Mesh(rbox(TABLE.halfW * 2 - 0.2, 0.04, TABLE.halfD * 2 - 0.2, 0.015), toy(C.offWhite));
   shelf.position.y = 0.22;
   table.add(apron, shelf);
   for (const sx of [-1, 1]) for (const sz of [-1, 1]) {
@@ -221,7 +225,7 @@ export function buildLabScene(ctx) {
       cab.add(knick);
     }
   }
-  const sign = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 0.26), new THREE.MeshBasicMaterial({ map: labelTexture('🧪 실험 도구 (E)', { bg: '#2fa89a', fg: '#ffffff' }), transparent: true }));
+  const sign = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 0.26), new THREE.MeshBasicMaterial({ map: labelTexture('🧪 실험 도구 (E)', { bg: '#a6ddd2', fg: '#4f5d66' }), transparent: true }));
   sign.position.set(cabHalf.x + 0.02, cabHalf.y * 2 + 0.2, 0);
   sign.rotation.y = Math.PI / 2;
   cab.add(sign);
@@ -270,14 +274,14 @@ export function buildLabScene(ctx) {
 
   // 벽 포스터
   const poster = (text, bg, x, y, z, ry) => {
-    const m = new THREE.Mesh(new THREE.PlaneGeometry(1.3, 0.34), new THREE.MeshBasicMaterial({ map: labelTexture(text, { bg, fg: '#ffffff', border: '#ffffff' }), transparent: true }));
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(1.3, 0.34), new THREE.MeshBasicMaterial({ map: labelTexture(text, { bg, fg: '#5b6770', border: '#ffffff' }), transparent: true }));
     m.position.set(x, y, z);
     m.rotation.y = ry;
     addDecor(m);
   };
-  poster('⚠ 레이저를 눈으로 보지 마세요', '#ff4d5a', ROOM.halfX - 0.01, 1.9, 1.2, -Math.PI / 2);
-  poster('🥽 보안경 착용!', '#3d8bff', -ROOM.halfX + 0.01, 1.9, 1.5, Math.PI / 2);
-  poster('F = ma 는 언제나 옳다*', '#8a6cff', 3.8, 2.3, -ROOM.halfZ + 0.01, 0);
+  poster('⚠ 레이저를 눈으로 보지 마세요', '#ffc2cb', ROOM.halfX - 0.01, 1.9, 1.2, -Math.PI / 2);
+  poster('🥽 보안경 착용!', '#c6dcff', -ROOM.halfX + 0.01, 1.9, 1.5, Math.PI / 2);
+  poster('F = ma 는 언제나 옳다*', '#ddd2ff', 3.8, 2.3, -ROOM.halfZ + 0.01, 0);
 
   // 오른쪽 벽의 문 (장식)
   const door = new THREE.Group();

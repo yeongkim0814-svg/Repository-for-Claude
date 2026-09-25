@@ -5,9 +5,11 @@
  *
  *  원칙
  *   · 형태  : 모서리가 둥근 굵직한 덩어리 (RoundedBoxGeometry). 가는 디테일 대신 큰 실루엣.
- *   · 색    : 민트/흰색 병원 배경 위에 채도 높은 원색 포인트 (주황, 노랑, 빨강, 파랑, 보라)
- *   · 재질  : 광택 있는 플라스틱 (MeshPhysicalMaterial + clearcoat) — 환경맵 반사로 '장난감' 느낌
- *   · 조명  : 밝은 전체광 + 수술등 스포트라이트 + 부드러운 그림자, ACES 톤매핑
+ *   · 색    : 옅은 민트/크림 배경 + 파스텔 포인트(피치, 버터, 로즈, 스카이, 라벤더, 세이지).
+ *             검정 외곽 대신 부드러운 청회색(ink). 빛(레이저)만 선명한 원색 → 시선이 광선으로 감
+ *   · 재질  : 무광에 가까운 말랑한 플라스틱 (높은 거칠기 + 약한 클리어코트 + sheen)
+ *   · 조명  : 강한 반구광(그림자 쪽도 밝게) + 넓게 번지는 VSM 소프트 그림자, Neutral 톤매핑
+ *             (ACES보다 채도·명도를 덜 눌러 파스텔 색이 그대로 유지됨), 옅은 안개로 원경을 부드럽게
  *
  *  도구·씬 코드는 여기의 PALETTE / toy() / metal() / rbox() 만 써서 스타일을 한곳에서 바꿀 수 있다.
  */
@@ -15,49 +17,61 @@ import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 
 export const PALETTE = {
-  mint: 0x8fe0cf,
-  teal: 0x2fa89a,
-  tealDark: 0x1d7d73,
-  white: 0xf5f8f7,
-  offWhite: 0xe3ebea,
-  tile: 0xe9eff1,
-  grout: 0xb9c7cc,
-  steel: 0xc9d3d8,
-  ink: 0x263238,
-  orange: 0xff7a3d,
-  yellow: 0xffcf3f,
-  red: 0xff4d5a,
-  blue: 0x3d8bff,
-  purple: 0x8a6cff,
-  green: 0x5ad16a,
-  glove: 0x8fcaff,
-  scrubs: 0x3fb5a5,
-  wood: 0xe8b25a,
+  // 배경 (아주 옅은 파스텔)
+  mint: 0xd4f1ea,
+  teal: 0xa6ddd2,
+  tealDark: 0x86c7bb,
+  white: 0xfcfbf8,
+  offWhite: 0xf1efea,
+  cream: 0xfaf5ec,
+  tile: 0xf6f3ee,
+  grout: 0xdcd6ce,
+  steel: 0xd7dde2,
+  ink: 0x5b6770,       // 검정 대신 부드러운 청회색
+  // 포인트 (파스텔 원색)
+  orange: 0xffb48f,    // 피치
+  yellow: 0xffe08a,    // 버터
+  red: 0xff9aa8,       // 로즈
+  pink: 0xffc6d9,
+  blue: 0x9cc4ff,      // 스카이
+  purple: 0xc4b2ff,    // 라벤더
+  green: 0xa8e6b0,     // 세이지
+  glove: 0xb8dcff,
+  scrubs: 0x9fdccf,
+  wood: 0xf0cf9c,
+  ledOn: 0x6fe38a,
+  ledOff: 0xff8a8a,
 };
 
-/** 광택 플라스틱 */
-export function toy(color, { rough = 0.38, clearcoat = 0.7, ...rest } = {}) {
-  return new THREE.MeshPhysicalMaterial({ color, roughness: rough, metalness: 0, clearcoat, clearcoatRoughness: 0.25, specularIntensity: 0.5, ...rest });
+/**
+ * 부드러운 파스텔 플라스틱: 거칠기를 높이고 클리어코트를 약하게 → 반사광이 넓고 은은함.
+ * sheen(천 표면 같은 가장자리 광택)으로 윤곽이 부드럽게 빛나 '말랑한' 느낌을 준다.
+ */
+export function toy(color, { rough = 0.55, clearcoat = 0.25, ...rest } = {}) {
+  return new THREE.MeshPhysicalMaterial({
+    color, roughness: rough, metalness: 0, clearcoat, clearcoatRoughness: 0.45,
+    specularIntensity: 0.35, sheen: 0.4, sheenRoughness: 0.8, sheenColor: 0xffffff, ...rest,
+  });
 }
 
 /** 스테인리스·크롬 */
-export function metal(color = PALETTE.steel, rough = 0.28) {
-  return new THREE.MeshStandardMaterial({ color, metalness: 0.85, roughness: rough });
+export function metal(color = PALETTE.steel, rough = 0.38) {
+  return new THREE.MeshStandardMaterial({ color, metalness: 0.6, roughness: rough });
 }
 
-/** 모서리가 둥근 박스. r을 생략하면 가장 짧은 변의 22%. */
+/** 모서리가 둥근 박스. r을 생략하면 가장 짧은 변의 30%. 세그먼트를 넉넉히(5) 줘서 곡면이 매끈. */
 export function rbox(w, h, d, r) {
-  const radius = r ?? Math.min(w, h, d) * 0.22;
-  return new RoundedBoxGeometry(w, h, d, 3, Math.min(radius, Math.min(w, h, d) / 2 - 1e-4));
+  const radius = r ?? Math.min(w, h, d) * 0.3;
+  return new RoundedBoxGeometry(w, h, d, 5, Math.min(radius, Math.min(w, h, d) / 2 - 1e-4));
 }
 
 /** 둥근 원기둥 느낌: 원기둥 + 위아래 살짝 좁힌 뚜껑 대신, 세그먼트 넉넉한 원기둥 */
-export function cyl(r, h, rTop = r, seg = 28) {
+export function cyl(r, h, rTop = r, seg = 40) {
   return new THREE.CylinderGeometry(rTop, r, h, seg);
 }
 
 /** 굵은 글씨 라벨 텍스처 (간판, 찬장 표지) */
-export function labelTexture(text, { bg = '#ffffff', fg = '#263238', border = '#263238', w = 512, h = 128, font = 64 } = {}) {
+export function labelTexture(text, { bg = '#ffffff', fg = '#5b6770', border = '#ffffff', w = 512, h = 128, font = 64 } = {}) {
   const c = document.createElement('canvas');
   c.width = w;
   c.height = h;

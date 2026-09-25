@@ -15,3 +15,10 @@
  */
 import './Pulley.js';
 import './Laser.js';
+// Phase 1: 광학
+import './optics/RayBox.js';
+import './optics/Mirror.js';
+import './optics/Lens.js';
+import './optics/Slit.js';
+import './optics/Screen.js';
+import './optics/GlassBlock.js';
