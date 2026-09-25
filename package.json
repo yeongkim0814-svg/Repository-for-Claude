@@ -1,0 +1,12 @@
+{
+  "name": "virtual-physics-lab",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "description": "1인칭 3D 가상 물리 실험실 (Three.js + Rapier) — Phase 0: 아키텍처",
+  "scripts": {
+    "start": "python3 -m http.server 8000",
+    "start:node": "npx --yes http-server -p 8000 -c-1 .",
+    "test": "node --test tests/*.test.mjs"
+  }
+}

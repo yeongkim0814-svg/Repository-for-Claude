@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>가상 물리 실험실 — Phase 0</title>
+  <link rel="stylesheet" href="style.css" />
+  <!--
+    import map: 번들러 없이 bare specifier("three")를 vendor/ 로컬 파일에 매핑한다.
+    - three          : Three.js r186 (three.module.js → three.core.js)
+    - three/addons/  : PointerLockControls 등 예제 모듈
+    - rapier         : @dimforge/rapier3d-compat 0.20 (WASM이 base64로 내장된 compat 빌드 →
+                       .wasm 파일을 따로 fetch 하지 않지만, ES 모듈 자체가 file:// 에서는
+                       CORS로 막히므로 로컬 정적 서버가 필요하다. README 참고)
+  -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "./vendor/three/three.module.js",
+      "three/addons/": "./vendor/three/addons/",
+      "rapier": "./vendor/rapier/rapier.mjs"
+    }
+  }
+  </script>
+</head>
+<body>
+  <canvas id="viewport"></canvas>
+
+  <!-- ───── HUD (pointer-events: none) ───── -->
+  <div id="hud">
+    <div id="crosshair"></div>
+    <div id="tooltip" class="hidden"></div>
+    <div id="state-badge">idle</div>
+    <div id="interaction-monitor">
+      <h3>상호작용 엔진 모니터</h3>
+      <div id="monitor-body"></div>
+    </div>
+    <div id="help">
+      <b>WASD</b> 이동 · <b>Space</b> 점프 · <b>마우스</b> 시점 · <b>E</b> 상호작용/배치 · <b>좌클릭</b> 배치
+      · <b>Q/R</b> 회전 · <b>F</b> 집기 · <b>X</b> 들고 있는 도구 반납 · <b>Del</b> 조준한 도구 제거
+    </div>
+  </div>
+
+  <!-- ───── 모달 UI (pointer lock 해제 상태에서 사용) ───── -->
+  <div id="cabinet-panel" class="panel hidden">
+    <div class="panel-header">
+      <h2>실험 도구 찬장</h2>
+      <button class="close-btn" data-close>닫기 (E)</button>
+    </div>
+    <div id="cabinet-list"></div>
+  </div>
+
+  <div id="property-panel" class="panel hidden">
+    <div class="panel-header">
+      <h2 id="property-title">도구 설정</h2>
+      <button class="close-btn" data-close>닫기 (E)</button>
+    </div>
+    <div id="property-body"></div>
+  </div>
+
+  <div id="overlay">
+    <div class="overlay-box">
+      <h1>가상 물리 실험실</h1>
+      <p id="overlay-status">물리 엔진 로딩 중…</p>
+      <p class="small">클릭하면 마우스가 잠기고 1인칭 조작이 시작됩니다. Esc로 해제.</p>
+    </div>
+  </div>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
