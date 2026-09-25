@@ -11,6 +11,7 @@
  * draw()는 배경(칠판 질감)을 다시 칠한 뒤 콜백을 호출하고 텍스처를 갱신한다.
  */
 import * as THREE from 'three';
+import { PALETTE, toy, rbox } from './style.js';
 
 export class Blackboard {
   constructor(width = 4, height = 1.6) {
@@ -22,23 +23,28 @@ export class Blackboard {
     this.texture.colorSpace = THREE.SRGBColorSpace;
     this.texture.anisotropy = 4;
 
-    const frame = new THREE.Mesh(
-      new THREE.BoxGeometry(width + 0.16, height + 0.16, 0.05),
-      new THREE.MeshStandardMaterial({ color: 0x6b4a2b, roughness: 0.8 }),
-    );
+    const frame = new THREE.Mesh(rbox(width + 0.2, height + 0.2, 0.07, 0.035), toy(PALETTE.wood));
+    const tray = new THREE.Mesh(rbox(width * 0.9, 0.05, 0.12, 0.02), toy(PALETTE.wood));
+    tray.position.set(0, -height / 2 - 0.08, 0.06);
+    const chalks = [PALETTE.white, PALETTE.yellow, PALETTE.red, PALETTE.blue].map((c, i) => {
+      const ch = new THREE.Mesh(new THREE.CapsuleGeometry(0.011, 0.06, 4, 8), toy(c));
+      ch.rotation.z = Math.PI / 2;
+      ch.position.set(-1.2 + i * 0.14, -height / 2 - 0.04, 0.07);
+      return ch;
+    });
     const board = new THREE.Mesh(
       new THREE.PlaneGeometry(width, height),
       new THREE.MeshStandardMaterial({ map: this.texture, roughness: 0.95 }),
     );
-    board.position.z = 0.026;
+    board.position.z = 0.036;
     this.mesh = new THREE.Group();
-    this.mesh.add(frame, board);
+    this.mesh.add(frame, board, tray, ...chalks);
     this.mesh.userData.targetKind = 'static';
 
     this.draw((g, w, h) => {
-      g.font = 'bold 110px "Nanum Pen Script", "Comic Sans MS", cursive, sans-serif';
+      g.font = '110px Jua, "Comic Sans MS", cursive, sans-serif';
       g.fillText('가상 물리 실험실', 90, 170);
-      g.font = '70px "Comic Sans MS", cursive, sans-serif';
+      g.font = '70px Jua, "Comic Sans MS", cursive, sans-serif';
       g.fillText('F = ma', 110, 330);
       g.fillText('∮ E·dA = Q / ε₀', 110, 450);
       g.fillText('d sinθ = mλ', 110, 570);
@@ -69,7 +75,7 @@ export class Blackboard {
 
   writeLines(lines, { x = 90, y = 160, size = 80, gap = 1.35 } = {}) {
     this.draw((g) => {
-      g.font = `${size}px "Comic Sans MS", cursive, sans-serif`;
+      g.font = `${size}px Jua, "Comic Sans MS", cursive, sans-serif`;
       lines.forEach((l, i) => g.fillText(l, x, y + i * size * gap));
     });
   }

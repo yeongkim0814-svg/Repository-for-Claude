@@ -18,6 +18,7 @@
  */
 import * as THREE from 'three';
 import RAPIER from 'rapier';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
 import { PhysicsWorld } from './physics/PhysicsWorld.js';
 import { BeamTracer } from './physics/BeamTracer.js';
@@ -39,6 +40,11 @@ import { UIManager } from './ui/UIManager.js';
 import './tools/index.js';
 
 await RAPIER.init();
+// 캔버스 텍스처(칠판·간판)가 둥근 폰트로 그려지도록 웹폰트를 잠깐 기다린다 (오프라인이면 1.5초 후 기본 폰트)
+await Promise.race([
+  Promise.all(['64px Jua', '64px Fredoka'].map((f) => document.fonts.load(f))).catch(() => {}),
+  new Promise((r) => setTimeout(r, 1500)),
+]);
 
 // ── 렌더러 / 카메라 ─────────────────────────────────────────
 const canvas = document.getElementById('viewport');
@@ -47,8 +53,14 @@ renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.setSize(innerWidth, innerHeight);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFShadowMap;
+// Surgeon Simulator 풍 룩: 필름 톤매핑으로 밝지만 날아가지 않는 색 + 환경맵 반사로 광택 플라스틱 질감
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 0.95;
 
 const scene = new THREE.Scene();
+const envMap = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture;
+scene.environment = envMap;
+scene.environmentIntensity = 0.3;
 const camera = new THREE.PerspectiveCamera(72, innerWidth / innerHeight, 0.03, 100);
 scene.add(camera);
 
@@ -71,6 +83,10 @@ const input = new InputManager(() => player.controls.isLocked && !ui.isModalOpen
 player.controls.addEventListener('unlock', () => input.clear());
 const hud = new HUD(ctx);
 const heldView = new HeldView(camera);
+heldView.scene.environment = envMap;
+heldView.scene.environmentIntensity = 0.35;
+addEventListener('keydown', (e) => e.code === 'KeyE' && player.controls.isLocked && heldView.pulse());
+addEventListener('mousedown', () => player.controls.isLocked && heldView.pulse());
 const stateMachine = new InteractionStateMachine(ctx, {
   input, targeting: new Targeting(ctx, camera), player, hud, ui, heldView,
 });
@@ -120,7 +136,8 @@ function frame() {
   ui.update(dt);
 
   renderer.render(scene, camera);
-  heldView.render(renderer, dt);
+  const moving = ['KeyW', 'KeyA', 'KeyS', 'KeyD'].some((k) => input.isDown(k));
+  heldView.render(renderer, dt, moving);
   input.endFrame();
 }
 renderer.setAnimationLoop(frame);

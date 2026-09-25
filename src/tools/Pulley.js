@@ -34,6 +34,7 @@
 import * as THREE from 'three';
 import { ToolRegistry } from '../core/ToolRegistry.js';
 import { worldToLocalQuat } from '../core/EntityManager.js';
+import { PALETTE as C, toy, metal, rbox, cyl } from '../scene/style.js';
 
 const G = 9.81;
 const AXLE_H = 0.62;          // 받침 바닥 → 축 높이 (m)
@@ -47,8 +48,8 @@ const weightHeight = (m) => 0.03 + 0.2 * m;
 function limits(p) {
   const R = p.radius;
   const dMin = R + 0.03;                                   // 추가 바퀴에 닿기 직전
-  const dMaxL = AXLE_H - PLATE_TOP - weightHeight(p.massLeft) - 0.005;  // 받침판에 닿음
-  const dMaxR = AXLE_H - PLATE_TOP - weightHeight(p.massRight) - 0.005;
+  const dMaxL = AXLE_H - PLATE_TOP - weightHeight(p.massLeft) - 0.012;  // 받침판에 닿음
+  const dMaxR = AXLE_H - PLATE_TOP - weightHeight(p.massRight) - 0.012;
   const d0 = (dMin + Math.min(dMaxL, dMaxR)) / 2;
   return {
     d0,
@@ -97,60 +98,65 @@ export const PulleyTool = ToolRegistry.define({
   buildMesh(p) {
     const R = p.radius;
     const root = new THREE.Group();
-    const metal = new THREE.MeshStandardMaterial({ color: 0x9aa3ad, metalness: 0.7, roughness: 0.35 });
-    const dark = new THREE.MeshStandardMaterial({ color: 0x30343b, roughness: 0.6 });
-    const brass = new THREE.MeshStandardMaterial({ color: 0xc9a24a, metalness: 0.8, roughness: 0.3 });
-
     const fpX = Math.max(0.18, R + W_RADIUS + 0.02);
-    const plate = new THREE.Mesh(new THREE.BoxGeometry(fpX * 2, PLATE_TOP, 0.16), dark);
-    plate.position.y = PLATE_TOP / 2;
-    const post = new THREE.Mesh(new THREE.BoxGeometry(0.03, AXLE_H + 0.03, 0.03), metal);
-    post.position.set(0, (AXLE_H + 0.03) / 2, -0.05);
-    const axle = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, 0.06, 12), metal);
+
+    // 받침: 파란 플라스틱 판 + 흰 기둥 + 크롬 축
+    const plate = new THREE.Mesh(rbox(fpX * 2, PLATE_TOP + 0.01, 0.17, 0.012), toy(C.blue));
+    plate.position.y = (PLATE_TOP + 0.01) / 2 - 0.005;
+    const post = new THREE.Mesh(rbox(0.036, AXLE_H + 0.04, 0.036, 0.014), toy(C.white));
+    post.position.set(0, (AXLE_H + 0.04) / 2, -0.05);
+    const cap = new THREE.Mesh(new THREE.SphereGeometry(0.024, 16, 12), toy(C.yellow));
+    cap.position.set(0, AXLE_H + 0.045, -0.05);
+    const axle = new THREE.Mesh(cyl(0.008, 0.06), metal());
     axle.rotation.x = Math.PI / 2;
     axle.position.set(0, AXLE_H, -0.025);
-    root.add(plate, post, axle);
+    root.add(plate, post, cap, axle);
 
-    // 바퀴 (회전 확인용 살 포함)
+    // 바퀴: 빨간 원판 + 흰 살 + 노란 허브 + 홈(어두운 테) → 회전이 한눈에 보이도록
     const wheel = new THREE.Group();
     wheel.position.set(0, AXLE_H, 0);
-    const disc = new THREE.Mesh(new THREE.CylinderGeometry(R, R, 0.02, 40), metal);
+    const disc = new THREE.Mesh(cyl(R, 0.022, R, 48), toy(C.red));
     disc.rotation.x = Math.PI / 2;
-    const groove = new THREE.Mesh(new THREE.TorusGeometry(R, 0.004, 8, 48), dark);
-    const spokeMat = new THREE.MeshStandardMaterial({ color: 0xd04040 });
+    const groove = new THREE.Mesh(new THREE.TorusGeometry(R, 0.006, 10, 48), toy(C.ink, { rough: 0.6 }));
     for (let i = 0; i < 3; i++) {
-      const spoke = new THREE.Mesh(new THREE.BoxGeometry(R * 1.8, 0.008, 0.024), i === 0 ? spokeMat : dark);
+      const spoke = new THREE.Mesh(rbox(R * 1.7, 0.012, 0.026, 0.005), toy(i === 0 ? C.yellow : C.white));
       spoke.rotation.z = (i * Math.PI) / 3;
       wheel.add(spoke);
     }
-    wheel.add(disc, groove);
+    const hub = new THREE.Mesh(cyl(0.016, 0.034), toy(C.yellow));
+    hub.rotation.x = Math.PI / 2;
+    wheel.add(disc, groove, hub);
     wheel.name = 'wheel';
     root.add(wheel);
 
-    // 추
-    for (const [side, m] of [['L', p.massLeft], ['R', p.massRight]]) {
+    // 추: 반짝이는 주황(왼쪽) / 보라(오른쪽) — 어느 쪽이 m_L 인지 색으로 구분
+    const { d0 } = limits(p);
+    for (const [side, m, col] of [['L', p.massLeft, C.orange], ['R', p.massRight, C.purple]]) {
       const h = weightHeight(m);
       const wgt = new THREE.Group();
-      const cyl = new THREE.Mesh(new THREE.CylinderGeometry(W_RADIUS, W_RADIUS, h, 20), brass);
-      cyl.position.y = -h / 2;
-      const hook = new THREE.Mesh(new THREE.TorusGeometry(0.008, 0.002, 6, 12), metal);
-      hook.position.y = 0.006;
-      wgt.add(cyl, hook);
+      const body = new THREE.Mesh(rbox(W_RADIUS * 2, h, W_RADIUS * 2, W_RADIUS * 0.6), toy(col));
+      body.position.y = -h / 2 - 0.008;
+      const hook = new THREE.Mesh(new THREE.TorusGeometry(0.009, 0.0028, 8, 16), metal());
+      hook.position.y = 0.0;
+      wgt.add(body, hook);
       wgt.name = `weight${side}`;
-      const { d0 } = limits(p);
       wgt.position.set(side === 'L' ? -R : R, AXLE_H - d0, 0);
       root.add(wgt);
     }
 
-    // 로프: 왼쪽 수직선 + 바퀴 위 반원 + 오른쪽 수직선
-    const ropeGeo = new THREE.BufferGeometry();
-    ropeGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(3 * 20), 3));
-    const rope = new THREE.Line(ropeGeo, new THREE.LineBasicMaterial({ color: 0xf2efe6 }));
-    rope.name = 'rope';
-    rope.frustumCulled = false;
-    rope.userData.noRaycast = true;
-    root.add(rope);
-    updateRope(rope, R, limits(p).d0, limits(p).d0);
+    // 로프: 왼쪽/오른쪽 수직 원기둥(길이 = scale.y) + 바퀴 위 반원 토러스 (R이 고정이므로 정적)
+    const ropeMat = toy(0xfff3d6, { rough: 0.8, clearcoat: 0 });
+    for (const side of ['L', 'R']) {
+      const seg = new THREE.Mesh(cyl(0.0028, 1, 0.0028, 8).translate(0, -0.5, 0), ropeMat);
+      seg.name = `rope${side}`;
+      seg.userData.noRaycast = true;
+      root.add(seg);
+    }
+    const arc = new THREE.Mesh(new THREE.TorusGeometry(R, 0.0028, 6, 32, Math.PI), ropeMat);
+    arc.position.set(0, AXLE_H, 0.0);
+    arc.userData.noRaycast = true;
+    root.add(arc);
+    updateRope(root, R, d0, d0);
     return root;
   },
 
@@ -274,7 +280,7 @@ export const PulleyTool = ToolRegistry.define({
     const dR = s.lim.d0 - R * s.theta;
     root.getObjectByName('weightL').position.set(-R, AXLE_H - dL, 0);
     root.getObjectByName('weightR').position.set(R, AXLE_H - dR, 0);
-    updateRope(root.getObjectByName('rope'), R, dL, dR);
+    updateRope(root, R, dL, dR);
   },
 
   onPropertyChange(entity, key) {
@@ -310,15 +316,10 @@ export const PulleyTool = ToolRegistry.define({
   },
 });
 
-function updateRope(rope, R, dL, dR) {
-  const arr = rope.geometry.attributes.position.array;
-  let i = 0;
-  const put = (x, y) => { arr[i++] = x; arr[i++] = y; arr[i++] = 0; };
-  put(-R, AXLE_H - dL);
-  for (let k = 0; k <= 17; k++) {
-    const phi = Math.PI - (k / 17) * Math.PI;
-    put(R * Math.cos(phi), AXLE_H + R * Math.sin(phi));
+function updateRope(root, R, dL, dR) {
+  for (const [side, x, d] of [['L', -R, dL], ['R', R, dR]]) {
+    const seg = root.getObjectByName(`rope${side}`);
+    seg.position.set(x, AXLE_H, 0);
+    seg.scale.y = Math.max(1e-3, d);
   }
-  put(R, AXLE_H - dR);
-  rope.geometry.attributes.position.needsUpdate = true;
 }

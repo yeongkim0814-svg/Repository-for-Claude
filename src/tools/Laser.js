@@ -19,6 +19,7 @@
  */
 import * as THREE from 'three';
 import { ToolRegistry } from '../core/ToolRegistry.js';
+import { PALETTE as PAL, toy, metal, rbox, cyl } from '../scene/style.js';
 
 const BEAM_Y = 0.15;
 const APERTURE_Z = 0.135;
@@ -60,40 +61,46 @@ export const LaserTool = ToolRegistry.define({
     { name: 'beam', type: 'beam_output', origin: [0, BEAM_Y, APERTURE_Z], direction: [0, 0, 1] },
   ],
 
-  footprint: () => ({ x: 0.05, y: 0.1, z: 0.14 }),
+  footprint: () => ({ x: 0.06, y: 0.1, z: 0.14 }),
 
   buildMesh() {
     const root = new THREE.Group();
-    const dark = new THREE.MeshStandardMaterial({ color: 0x23262b, roughness: 0.5 });
-    const shell = new THREE.MeshStandardMaterial({ color: 0xd8dde3, metalness: 0.3, roughness: 0.35 });
-    const base = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.02, 0.26), dark);
-    base.position.y = 0.01;
-    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, BEAM_Y - 0.05, 12), dark);
-    post.position.y = 0.02 + (BEAM_Y - 0.05) / 2;
-    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.032, 0.032, 0.25, 24), shell);
-    body.rotation.x = Math.PI / 2;
-    body.position.set(0, BEAM_Y, 0);
-    const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.026, 0.02, 20), dark);
-    cap.rotation.x = Math.PI / 2;
-    cap.position.set(0, BEAM_Y, APERTURE_Z - 0.01);
-    const warn = new THREE.Mesh(new THREE.BoxGeometry(0.035, 0.001, 0.05), new THREE.MeshStandardMaterial({ color: 0xffcc00 }));
-    warn.position.set(0, BEAM_Y + 0.0325, -0.03);
-    root.add(base, post, body, cap, warn);
+    const base = new THREE.Mesh(rbox(0.11, 0.025, 0.27, 0.01), toy(PAL.blue));
+    base.position.y = 0.0125;
+    const post = new THREE.Mesh(cyl(0.014, BEAM_Y - 0.06), toy(PAL.white));
+    post.position.y = 0.025 + (BEAM_Y - 0.06) / 2;
+    const clamp = new THREE.Mesh(rbox(0.05, 0.03, 0.06, 0.01), toy(PAL.white));
+    clamp.position.y = BEAM_Y - 0.045;
+    // 몸통: 굵직한 주황 박스 + 노랑/검정 경고 띠 + 앞쪽 크롬 노즐
+    const body = new THREE.Mesh(rbox(0.078, 0.078, 0.23, 0.022), toy(PAL.orange));
+    body.position.set(0, BEAM_Y, -0.01);
+    const stripe = new THREE.Mesh(rbox(0.082, 0.082, 0.03, 0.02), toy(PAL.yellow));
+    stripe.position.set(0, BEAM_Y, 0.05);
+    const back = new THREE.Mesh(rbox(0.07, 0.07, 0.02, 0.012), toy(PAL.white));
+    back.position.set(0, BEAM_Y, -0.13);
+    const nozzle = new THREE.Mesh(cyl(0.026, 0.035, 0.02, 24), metal());
+    nozzle.rotation.x = Math.PI / 2;
+    nozzle.position.set(0, BEAM_Y, APERTURE_Z - 0.018);
+    const aperture = new THREE.Mesh(new THREE.CircleGeometry(0.009, 16), new THREE.MeshBasicMaterial({ color: 0x111111 }));
+    aperture.position.set(0, BEAM_Y, APERTURE_Z + 0.0005);
+    const led = new THREE.Mesh(new THREE.SphereGeometry(0.009, 12, 8), new THREE.MeshBasicMaterial({ color: PAL.green }));
+    led.position.set(0, BEAM_Y + 0.04, -0.08);
+    led.name = 'led';
+    root.add(base, post, clamp, body, stripe, back, nozzle, aperture, led);
 
-    // 빔 (길이 1로 만들어 두고 scale.y로 늘림) + 맞은 지점의 광점
-    const beam = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.0022, 0.0022, 1, 8, 1, true).translate(0, 0.5, 0).rotateX(Math.PI / 2),
-      new THREE.MeshBasicMaterial({ color: 0xff2200, transparent: true, opacity: 0.85, blending: THREE.AdditiveBlending, depthWrite: false }),
-    );
+    // 빔: 가는 심 + 바깥 글로우 (길이 1로 만들어 두고 scale.z로 늘림) + 맞은 지점 광점
+    const beamGeo = (r) => cyl(r, 1, r, 10).translate(0, 0.5, 0).rotateX(Math.PI / 2);
+    const additive = (opacity) => new THREE.MeshBasicMaterial({ color: 0xff2200, transparent: true, opacity, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false });
+    const core = () => new THREE.MeshBasicMaterial({ color: 0xff2200, toneMapped: false });
+    const beam = new THREE.Mesh(beamGeo(0.0024), core());
+    beam.add(new THREE.Mesh(beamGeo(0.007), additive(0.25)));
     beam.position.set(0, BEAM_Y, APERTURE_Z);
     beam.name = 'beam';
-    const spot = new THREE.Mesh(
-      new THREE.SphereGeometry(0.009, 12, 8),
-      new THREE.MeshBasicMaterial({ color: 0xff4422, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false }),
-    );
+    const spot = new THREE.Mesh(new THREE.SphereGeometry(0.012, 16, 12), core());
+    spot.add(new THREE.Mesh(new THREE.SphereGeometry(0.03, 16, 12), additive(0.25)));
     spot.name = 'spot';
     for (const m of [beam, spot]) {
-      m.userData.noRaycast = true; // 조준·다른 빔이 빔 자체에 맞지 않도록
+      m.traverse((o) => (o.userData.noRaycast = true)); // 조준·다른 빔이 빔 자체에 맞지 않도록
       m.visible = false;           // 고스트/손에 든 모습에서는 숨김. 배치 후 update()가 켠다.
       root.add(m);
     }
@@ -115,6 +122,7 @@ export const LaserTool = ToolRegistry.define({
     const beam = entity.mesh.getObjectByName('beam');
     const spot = entity.mesh.getObjectByName('spot');
     beam.visible = spot.visible = p.enabled;
+    entity.mesh.getObjectByName('led').material.color.set(p.enabled ? PAL.green : PAL.red);
     if (!p.enabled) {
       entity.state.hit = null;
       return;
@@ -144,10 +152,9 @@ function applyColor(entity) {
   const c = wavelengthToColor(p.wavelength);
   const beam = entity.mesh.getObjectByName('beam');
   const spot = entity.mesh.getObjectByName('spot');
-  beam.material.color.copy(c);
-  spot.material.color.copy(c);
+  for (const o of [beam, spot]) o.traverse((m) => m.material?.color.copy(c));
   // 출력이 클수록 빔이 굵고 진하게 (시각적 표현, 로그 스케일)
   const k = 0.6 + 0.4 * Math.log10(p.power);
   beam.scale.x = beam.scale.y = Math.max(0.5, k);
-  beam.material.opacity = Math.min(1, 0.45 + 0.25 * Math.log10(p.power));
+  beam.children[0].material.opacity = Math.min(0.6, 0.15 + 0.12 * Math.log10(p.power)); // 글로우 세기
 }

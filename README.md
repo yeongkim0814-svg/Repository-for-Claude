@@ -6,6 +6,8 @@ Phase 0에서는 이후 역학·광학·전자기·열역학 도구를 얹을 **
 
 - 렌더링: Three.js r186 · 물리: Rapier 0.20 (`@dimforge/rapier3d-compat`, WASM 내장)
 - 빌드 도구 없음. 라이브러리는 `vendor/`에 들어 있어 **오프라인에서도 실행**됩니다.
+- 그래픽: **Surgeon Simulator 풍** — 민트·흰색 병원 실험실, 둥근 장난감 같은 도구, 광택 플라스틱,
+  수술등, 1인칭 파란 수술 장갑 손 (둥근 폰트 Jua/Fredoka는 온라인일 때 Google Fonts에서 받음)
 
 ## 실행 방법
 
@@ -67,11 +69,14 @@ src/
     Targeting.js                화면 중앙 레이캐스트
     InteractionStateMachine.js  ★ idle → aiming → holding → placing 상태 머신
     Placement.js                고스트 미리보기 + 배치 가능 판정 (겹침/지지)
-  scene/  LabScene.js, Blackboard.js (CanvasTexture 훅)
+  scene/  LabScene.js, Blackboard.js (CanvasTexture 훅),
+          style.js (아트 스타일: 팔레트, toy()/metal() 재질, rbox() 둥근 박스 — 룩은 여기서 일괄 조정)
   tools/  Pulley.js, Laser.js, index.js
-  ui/     HUD.js (상호작용 모니터 포함), HeldView.js, UIManager.js (범용 설정 패널)
+  ui/     HUD.js (상호작용 모니터 포함), HeldView.js (1인칭 장갑 손 + 들고 있는 도구),
+          UIManager.js (범용 설정 패널)
 tests/interaction.test.mjs      레지스트리·엔진 단위 테스트
-vendor/                         three, PointerLockControls, rapier (라이선스 동봉)
+vendor/                         three (+ PointerLockControls, RoundedBoxGeometry, RoomEnvironment),
+                                rapier (라이선스 동봉)
 ```
 
 ## 핵심 아키텍처

@@ -4,6 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>가상 물리 실험실 — Phase 0</title>
+  <!-- 둥근 게임풍 폰트 (오프라인이면 시스템 폰트로 대체됨) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;700&family=Jua&display=swap" />
   <link rel="stylesheet" href="style.css" />
   <!--
     import map: 번들러 없이 bare specifier("three")를 vendor/ 로컬 파일에 매핑한다.
@@ -27,6 +31,7 @@
   <canvas id="viewport"></canvas>
 
   <!-- ───── HUD (pointer-events: none) ───── -->
+  <div id="vignette"></div>
   <div id="hud">
     <div id="crosshair"></div>
     <div id="tooltip" class="hidden"></div>
@@ -60,7 +65,7 @@
 
   <div id="overlay">
     <div class="overlay-box">
-      <h1>가상 물리 실험실</h1>
+      <h1>가상 물리 실험실<span class="sub">VIRTUAL PHYSICS LAB</span></h1>
       <p id="overlay-status">물리 엔진 로딩 중…</p>
       <p class="small">클릭하면 마우스가 잠기고 1인칭 조작이 시작됩니다. Esc로 해제.</p>
     </div>
