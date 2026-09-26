@@ -3,10 +3,13 @@
  *  PlayerController — 1인칭 이동 (마인크래프트 스타일)
  * ============================================================================
  *
- *  시점 : PointerLockControls가 마우스 이동량으로 카메라 yaw/pitch를 돌린다.
- *  이동 : 매 물리 스텝마다 WASD를 폴링 →
+ *  시점 : PointerLockControls(데스크톱)가 마우스 이동량으로, TouchLookControls(터치)가
+ *         화면 드래그 거리로 카메라 yaw/pitch를 돌린다. 둘은 같은 최소 인터페이스
+ *         (isLocked/lock/unlock/addEventListener)라 여기서는 어느 쪽인지 신경 쓰지 않는다.
+ *  이동 : 매 물리 스텝마다 WASD(디지털) + input.moveAxis(조이스틱 같은 아날로그, -1..1)를
+ *         합쳐서 폴링 →
  *           forward = 카메라 시선의 XZ 투영(정규화), right = forward × up
- *           wish    = (W−S)·forward + (D−A)·right   (정규화 후 × 속력)
+ *           wish    = (W−S+moveAxis.y)·forward + (D−A+moveAxis.x)·right  (정규화 후 × 속력)
  *         수직 속도 vy는 직접 적분: vy ← vy + g·dt (접지 시 Space → vy = v_jump)
  *         점프 속도: 최고점 높이 h = v²/2g → v = √(2gh). h = 1.0 m → v ≈ 4.43 m/s
  *  충돌 : Rapier KinematicCharacterController가 "원하는 이동량"을 받아 벽·테이블에
@@ -17,6 +20,7 @@
  */
 import * as THREE from 'three';
 import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
+import { TouchLookControls } from './TouchLookControls.js';
 
 const HALF_HEIGHT = 0.55;
 const RADIUS = 0.3;
@@ -27,22 +31,24 @@ const JUMP_SPEED = Math.sqrt(2 * 9.81 * 1.0);
 const GRAVITY = -9.81;
 
 export class PlayerController {
-  constructor(ctx, camera, domElement, spawn = new THREE.Vector3(0, 0, 3)) {
+  constructor(ctx, camera, domElement, spawn = new THREE.Vector3(0, 0, 3), { touch = false } = {}) {
     this.ctx = ctx;
     this.camera = camera;
-    this.controls = new PointerLockControls(camera, domElement);
-    this.controls.pointerSpeed = 0.8;
+    this.controls = touch ? new TouchLookControls(camera, domElement) : new PointerLockControls(camera, domElement);
+    this.controls.pointerSpeed = touch ? 1.1 : 0.8;
 
-    // 크롬은 pointer lock 직후 movementX/Y가 수백 px인 가짜 mousemove를 보내는 경우가 있어
-    // 패널을 닫을 때 시점이 튄다. 잠금 직후 짧은 시간과 비정상적으로 큰 이동량을 걸러낸다.
-    // (capture 단계의 window 리스너가 PointerLockControls의 document 리스너보다 먼저 실행됨)
-    let lockedAt = 0;
-    this.controls.addEventListener('lock', () => (lockedAt = performance.now()));
-    addEventListener('mousemove', (e) => {
-      if (!this.controls.isLocked) return;
-      const spike = Math.abs(e.movementX) > 300 || Math.abs(e.movementY) > 300;
-      if (spike || performance.now() - lockedAt < 100) e.stopImmediatePropagation();
-    }, true);
+    if (!touch) {
+      // 크롬은 pointer lock 직후 movementX/Y가 수백 px인 가짜 mousemove를 보내는 경우가 있어
+      // 패널을 닫을 때 시점이 튄다. 잠금 직후 짧은 시간과 비정상적으로 큰 이동량을 걸러낸다.
+      // (capture 단계의 window 리스너가 PointerLockControls의 document 리스너보다 먼저 실행됨)
+      let lockedAt = 0;
+      this.controls.addEventListener('lock', () => (lockedAt = performance.now()));
+      addEventListener('mousemove', (e) => {
+        if (!this.controls.isLocked) return;
+        const spike = Math.abs(e.movementX) > 300 || Math.abs(e.movementY) > 300;
+        if (spike || performance.now() - lockedAt < 100) e.stopImmediatePropagation();
+      }, true);
+    }
 
     const { RAPIER, world } = ctx.physics;
     this.body = world.createRigidBody(
@@ -75,8 +81,9 @@ export class PlayerController {
     this._fwd.normalize();
     this._right.crossVectors(this._fwd, this.camera.up).normalize();
 
-    const f = (input.isDown('KeyW') ? 1 : 0) - (input.isDown('KeyS') ? 1 : 0);
-    const r = (input.isDown('KeyD') ? 1 : 0) - (input.isDown('KeyA') ? 1 : 0);
+    // 디지털(WASD) + 아날로그(조이스틱) 입력을 더한 뒤 -1..1로 클램프 — 둘 다 눌러도 폭주하지 않음
+    const f = THREE.MathUtils.clamp((input.isDown('KeyW') ? 1 : 0) - (input.isDown('KeyS') ? 1 : 0) + input.moveAxis.y, -1, 1);
+    const r = THREE.MathUtils.clamp((input.isDown('KeyD') ? 1 : 0) - (input.isDown('KeyA') ? 1 : 0) + input.moveAxis.x, -1, 1);
     this._wish.set(0, 0, 0).addScaledVector(this._fwd, f).addScaledVector(this._right, r);
     if (this._wish.lengthSq() > 0) this._wish.normalize().multiplyScalar(input.isDown('ShiftLeft') ? RUN_SPEED : WALK_SPEED);
 

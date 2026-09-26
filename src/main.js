@@ -39,6 +39,7 @@ import { InputManager } from './player/InputManager.js';
 import { PlayerController } from './player/PlayerController.js';
 import { Targeting } from './player/Targeting.js';
 import { InteractionStateMachine } from './player/InteractionStateMachine.js';
+import { TouchControls, isTouchDevice } from './player/TouchControls.js';
 import { HUD } from './ui/HUD.js';
 import { HeldView } from './ui/HeldView.js';
 import { UIManager } from './ui/UIManager.js';
@@ -54,6 +55,9 @@ await Promise.race([
 const params = new URLSearchParams(location.search);
 // ?lowfx : 저사양 모드 (그림자 끔, 픽셀 비율 1) — 내장 그래픽 노트북용
 const LOW_FX = params.has('lowfx');
+// 태블릿/폰 판정: coarse 포인터(손가락) 우선 여부. ?touch=1/0으로 강제 전환 가능(테스트용).
+const TOUCH = params.has('touch') ? params.get('touch') !== '0' : isTouchDevice();
+document.body.classList.toggle('touch-mode', TOUCH);
 const canvas = document.getElementById('viewport');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 renderer.setPixelRatio(LOW_FX ? 1 : Math.min(devicePixelRatio, 2));
@@ -87,7 +91,8 @@ registerDefaultStrategies(checker, ctx);
 registerRules();
 ctx.engine = new InteractionEngine({ checker, registry: InteractionRegistry, ctx });
 
-const player = new PlayerController(ctx, camera, document.body, new THREE.Vector3(0, 0, 2.5));
+const player = new PlayerController(ctx, camera, document.body, new THREE.Vector3(0, 0, 2.5), { touch: TOUCH });
+const basePointerSpeed = player.controls.pointerSpeed; // 확대 시 이 값에 비례해서 줄인다 (터치/데스크톱 공통)
 camera.lookAt(0, 1.0, TABLE.z);
 const ui = (ctx.ui = new UIManager(ctx, player.controls));
 const input = new InputManager(() => player.controls.isLocked && !ui.isModalOpen());
@@ -102,6 +107,9 @@ const stateMachine = new InteractionStateMachine(ctx, {
   input, targeting: new Targeting(ctx, camera), player, hud, ui, heldView,
 });
 Object.assign(ctx, { player, input, stateMachine });
+
+// 태블릿/폰: 조이스틱 + 버튼 HUD (E/F 버튼은 자체적으로 heldView.pulse()도 호출한다)
+const touchControls = TOUCH ? new TouchControls(ctx, { input, heldView }) : null;
 
 // ── ?demo[=slit|mirror|lens|tir] : 프리셋 배치 (src/demos.js) ──
 if (params.has('demo')) spawnDemo(ctx, params.get('demo'));
@@ -135,7 +143,7 @@ function frame() {
   if (Math.abs(fov - camera.fov) > 0.01) {
     camera.fov = fov;
     camera.updateProjectionMatrix();
-    player.controls.pointerSpeed = 0.8 * (fov / 72); // 확대 중에는 조준도 정밀하게
+    player.controls.pointerSpeed = basePointerSpeed * (fov / 72); // 확대 중에는 조준도 정밀하게
   }
   heldView.anchor.visible = fov > 40;
   ctx.optics.renderer.airVisibility = THREE.MathUtils.clamp((fov - 12) / 40, 0.12, 1);
@@ -148,9 +156,11 @@ function frame() {
 
   hud.updateMonitor(dt, ctx.engine, ctx.entities.entities);
   ui.update(dt);
+  // 모달(찬장/설정 패널)이 열려 있는 동안은 조이스틱·버튼이 화면 위 DOM 버튼과 겹치지 않게 숨긴다
+  touchControls?.setVisible(!ui.isModalOpen());
 
   renderer.render(scene, camera);
-  const moving = ['KeyW', 'KeyA', 'KeyS', 'KeyD'].some((k) => input.isDown(k));
+  const moving = ['KeyW', 'KeyA', 'KeyS', 'KeyD'].some((k) => input.isDown(k)) || Math.hypot(input.moveAxis.x, input.moveAxis.y) > 0.15;
   heldView.render(renderer, dt, moving);
   input.endFrame();
 }

@@ -51,6 +51,29 @@ python3 -m http.server 8000        # 또는: npm start
 설정 패널(E)은 모든 도구에 **방향(yaw) 슬라이더**가 있어 1° 단위로 돌릴 수 있습니다(광학 정렬용).
 도르래: `놓기` 체크 → 운동 시작, Rapier 가속도와 앳우드 이론값을 실시간 비교.
 
+## 태블릿/폰에서 하기
+
+터치 화면이면(또는 주소 뒤에 `?touch=1`을 붙이면) 자동으로 온스크린 조작으로 바뀝니다.
+포인터 락은 iOS Safari가 아예 지원하지 않고 안드로이드에도 "마우스 이동량" 개념이 없어서,
+대신 화면을 드래그한 만큼 카메라를 직접 돌리는 방식(`TouchLookControls`)을 씁니다.
+
+| 조작 | 동작 |
+|---|---|
+| 화면 드래그 (아무 곳이나, 버튼 위 제외) | 시점 회전 |
+| 좌하단 조이스틱 | 이동 (아날로그 — 방향과 세기 둘 다 반영) |
+| **E** 버튼 | 상호작용/배치 확정 (찬장 열기, 설정 패널, 배치) |
+| **F** 버튼 | 조준한 도구 집기 |
+| **Q / R** 버튼 | 배치 미리보기 회전 (15°, **5°** 토글이 켜져 있으면 5°씩) |
+| 🔍 버튼 (누르고 있기) | 확대 |
+| ⤴ 버튼 | 점프 |
+| X / 🗑 버튼 | 반납 / 제거 |
+
+한 손가락은 조이스틱, 다른 손가락은 화면 드래그로 시점 회전 — 동시에 됩니다(서로 다른 터치를
+추적하기 때문). 버튼들은 실제 키보드 keydown/keyup과 똑같이 동작해서(`InputManager.press/release`)
+`PlayerController`나 상태 머신은 입력이 키보드에서 왔는지 손가락에서 왔는지 전혀 모릅니다 —
+터치 지원 코드는 `src/player/TouchLookControls.js`(시점), `TouchControls.js`(조이스틱·버튼),
+`InputManager.js`의 `press/release/moveAxis` 세 곳에만 있고 그 외 게임 로직은 그대로입니다.
+
 ## Phase 1 광학 도구
 
 | 도구 | 물리 | 주요 설정 | 측정값(설정 패널) |
@@ -88,8 +111,10 @@ src/
     InteractionEngine.js        broad → narrow → enter/update/exit 파이프라인
     rules.js                    도구 쌍 규칙을 등록하는 곳 (Phase 1: 슬릿×스크린 회절 규칙 1개)
   player/
-    PlayerController.js         PointerLockControls + KinematicCharacterController(캡슐)
-    InputManager.js             키 상태 폴링 (isDown / consume)
+    PlayerController.js         PointerLock/TouchLook + KinematicCharacterController(캡슐)
+    TouchLookControls.js        터치용 시점 컨트롤 (PointerLockControls와 같은 인터페이스)
+    TouchControls.js            온스크린 조이스틱 + 버튼 (태블릿/폰)
+    InputManager.js             키 상태 폴링 (isDown / consume / press·release / moveAxis)
     Targeting.js                화면 중앙 레이캐스트
     InteractionStateMachine.js  ★ idle → aiming → holding → placing 상태 머신
     Placement.js                고스트 미리보기 + 배치 가능 판정 (겹침/지지)

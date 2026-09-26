@@ -2,7 +2,8 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- maximum-scale/user-scalable=no: 태블릿에서 핀치줌·더블탭줌이 시점 드래그와 겹치지 않게 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>가상 물리 실험실 — Phase 0</title>
   <!-- 둥근 게임풍 폰트 (오프라인이면 시스템 폰트로 대체됨) -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -40,10 +41,11 @@
       <h3>상호작용 엔진 모니터</h3>
       <div id="monitor-body"></div>
     </div>
-    <div id="help">
+    <div id="help" class="desktop-only">
       <b>WASD</b> 이동 · <b>Space</b> 점프 · <b>마우스</b> 시점 · <b>E</b> 상호작용/배치 · <b>좌클릭</b> 배치
       · <b>Q/R</b> 회전 · <b>F</b> 집기 · <b>우클릭/Z</b> 확대 · <b>X</b> 들고 있는 도구 반납 · <b>Del</b> 조준한 도구 제거
     </div>
+    <div id="help-touch" class="touch-only">화면 드래그: 시점 회전 · 좌하단 스틱: 이동 · 우하단 버튼: 동작</div>
   </div>
 
   <!-- ───── 모달 UI (pointer lock 해제 상태에서 사용) ───── -->
@@ -67,7 +69,8 @@
     <div class="overlay-box">
       <h1>가상 물리 실험실<span class="sub">VIRTUAL PHYSICS LAB</span></h1>
       <p id="overlay-status">물리 엔진 로딩 중…</p>
-      <p class="small">클릭하면 마우스가 잠기고 1인칭 조작이 시작됩니다. Esc로 해제.</p>
+      <p class="small desktop-only">클릭하면 마우스가 잠기고 1인칭 조작이 시작됩니다. Esc로 해제.</p>
+      <p class="small touch-only">화면을 탭하면 시작됩니다. 드래그로 시점을 돌리고, 화면 아래 스틱과 버튼으로 움직여요.</p>
     </div>
   </div>
 

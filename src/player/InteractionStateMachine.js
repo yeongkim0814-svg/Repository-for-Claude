@@ -145,7 +145,9 @@ export class InteractionStateMachine {
       return this.#holding(t);
     }
     // Shift를 누르고 있으면 5° 미세 회전 (광학 정렬용)
-    const step = this.input.isDown('ShiftLeft') || this.input.isDown('ShiftRight') ? FINE_STEP : ROT_STEP;
+    // TouchFine: 터치 HUD의 "5°" 토글 버튼 (실제 키보드 코드가 아닌 가상 키. ShiftLeft는
+    // PlayerController에서 달리기로도 쓰이므로 터치용으로 겹치지 않는 별도 키를 쓴다)
+    const step = this.input.isDown('ShiftLeft') || this.input.isDown('ShiftRight') || this.input.isDown('TouchFine') ? FINE_STEP : ROT_STEP;
     if (this.input.consume('KeyQ')) this.yaw += step;
     if (this.input.consume('KeyR')) this.yaw -= step;
     if (this.input.consume('KeyX')) return this.transition(State.IDLE);
