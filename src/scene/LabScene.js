@@ -14,6 +14,19 @@ import { PALETTE as C, toy, metal, rbox, cyl, labelTexture } from './style.js';
 
 export const ROOM = { halfX: 7, halfZ: 6, height: 3.2 };
 export const TABLE = { x: 0, z: -1.5, halfW: 1.5, halfD: 0.6, height: 0.9 };
+/**
+ * 도구 찬장 치수. 왼쪽 벽(x=-halfX) 전체를 차지하는 유리문 진열장.
+ * FactoryDecor.js가 진열장 안에 소품(Kenney 모델)을 놓을 때도 이 상수로
+ * 선반 위치를 계산해 LabScene과 어긋나지 않게 한다.
+ */
+export const CABINET = {
+  x: -ROOM.halfX, zCenter: -1.5, halfZ: 3.0, halfY: 1.2, depth: 0.84, bays: 5,
+};
+/** i번째 진열장 칸의 중심 z좌표 (0 ≤ i < CABINET.bays) */
+export function cabinetBayZ(i) {
+  const bayW = (CABINET.halfZ * 2) / CABINET.bays;
+  return CABINET.zCenter - CABINET.halfZ + bayW * (i + 0.5);
+}
 
 function tileTexture() {
   const c = document.createElement('canvas');
@@ -192,44 +205,86 @@ export function buildLabScene(ctx) {
   }
   addStatic(table, 'static', { x: TABLE.halfW, y: TABLE.height / 2, z: TABLE.halfD }, new THREE.Vector3(TABLE.x, TABLE.height / 2, TABLE.z));
 
-  // ── 도구 찬장 (왼쪽 벽, +X 방향을 바라봄) ────────────────
+  // ── 도구 찬장 (왼쪽 벽 전체를 차지하는 유리문 진열장) ─────
+  // 5개의 진열 칸(bay)으로 나뉜다. 칸마다: 유리문 1장 + 선반 3단 + 실험 기구 장식.
+  // 안쪽에서 새어나오는 빛(발광 스트립)으로 유리 너머 내용물이 잘 보이게 한다.
   const cab = new THREE.Group();
-  const cabHalf = { x: 0.35, y: 1.0, z: 0.8 };
-  cab.position.set(-ROOM.halfX + cabHalf.x, 0, -2.5);
-  const body = new THREE.Mesh(rbox(cabHalf.x * 2, cabHalf.y * 2, cabHalf.z * 2, 0.06), toy(C.white));
-  body.position.y = cabHalf.y;
-  cab.add(body);
-  const glassMat = new THREE.MeshPhysicalMaterial({ color: 0xbfeaff, transparent: true, opacity: 0.35, roughness: 0.05, clearcoat: 1 });
-  for (const sz of [-1, 1]) {
-    const frame = new THREE.Mesh(rbox(0.04, 1.72, 0.74, 0.02), toy(C.teal));
-    frame.position.set(cabHalf.x + 0.01, cabHalf.y + 0.04, sz * 0.39);
-    const pane = new THREE.Mesh(rbox(0.02, 1.4, 0.56, 0.01), glassMat);
-    pane.position.set(cabHalf.x + 0.03, cabHalf.y + 0.1, sz * 0.39);
-    const handle = new THREE.Mesh(rbox(0.05, 0.22, 0.05, 0.02), toy(C.yellow));
-    handle.position.set(cabHalf.x + 0.06, cabHalf.y, sz * 0.08);
+  const outerX0 = CABINET.x;                    // 벽 면 (뒤판)
+  const outerX1 = CABINET.x + CABINET.depth;     // 진열장 앞면
+  const y1 = CABINET.halfY * 2;
+  const z0 = CABINET.zCenter - CABINET.halfZ;
+  const z1 = CABINET.zCenter + CABINET.halfZ;
+  const bayW = (CABINET.halfZ * 2) / CABINET.bays;
+  cab.position.set(outerX0, 0, CABINET.zCenter); // addStatic 콜라이더 중심 계산의 기준점
+
+  const shellMat = toy(C.white, { rough: 0.7, clearcoat: 0.15 });
+  const shell = (w, h, d, x, y, z) => {
+    const m = new THREE.Mesh(rbox(w, h, d, Math.min(w, h, d) * 0.15), shellMat);
+    m.position.set(x - outerX0, y, z - CABINET.zCenter);
+    cab.add(m);
+    return m;
+  };
+  shell(0.06, y1, CABINET.halfZ * 2, outerX0 + 0.03, y1 / 2, CABINET.zCenter);              // 뒤판
+  shell(CABINET.depth, 0.08, CABINET.halfZ * 2, outerX0 + CABINET.depth / 2, y1 + 0.04, CABINET.zCenter); // 천장판
+  const plinth = new THREE.Mesh(rbox(CABINET.depth, 0.1, CABINET.halfZ * 2, 0.02), toy(C.teal));
+  plinth.position.set(CABINET.depth / 2, 0.05, 0);
+  cab.add(plinth);
+  for (const z of [z0, z1]) shell(CABINET.depth, y1, 0.06, outerX0 + CABINET.depth / 2, y1 / 2, z); // 양 끝 마감판
+
+  const dividerMat = toy(C.teal, { rough: 0.55 });
+  const glassMat = new THREE.MeshPhysicalMaterial({ color: 0xd8f3ff, transparent: true, opacity: 0.32, roughness: 0.04, clearcoat: 1, side: THREE.DoubleSide });
+  const knickColors = [C.red, C.blue, C.yellow, C.purple, C.orange, C.green];
+  const doorColors = [C.pink, C.teal];
+
+  for (let i = 0; i < CABINET.bays; i++) {
+    const zc = cabinetBayZ(i) - CABINET.zCenter; // cab 로컬 좌표
+    if (i > 0) {
+      const div = new THREE.Mesh(rbox(CABINET.depth - 0.03, y1 - 0.04, 0.04, 0.01), dividerMat);
+      div.position.set(CABINET.depth / 2, y1 / 2, zc - bayW / 2);
+      cab.add(div);
+    }
+    // 선반 3단 + 그 위의 장식용 실험 기구 (색은 칸·단마다 순환)
+    for (let s = 0; s < 3; s++) {
+      const sy = 0.55 + s * 0.6;
+      const shelfM = new THREE.Mesh(rbox(bayW - 0.08, 0.03, CABINET.depth - 0.16, 0.01), toy(C.offWhite));
+      shelfM.position.set(CABINET.depth / 2 - 0.02, sy, zc);
+      cab.add(shelfM);
+      for (let k = 0; k < 2; k++) {
+        const col = knickColors[(i * 3 + s + k) % knickColors.length];
+        const shape = (i + s + k) % 3;
+        const knick = new THREE.Mesh(
+          shape === 0 ? rbox(0.16, 0.14, 0.2) : shape === 1 ? cyl(0.06, 0.2, 0.045) : new THREE.SphereGeometry(0.09, 16, 12),
+          toy(col),
+        );
+        knick.position.set(0.32 + (k % 2) * 0.05, sy + 0.1, zc + (k ? 1 : -1) * bayW * 0.22);
+        cab.add(knick);
+      }
+    }
+    // 내부 조명: 칸 천장 안쪽의 발광 스트립 (그림자에 안 가려 항상 밝게 보임)
+    const strip = new THREE.Mesh(rbox(bayW - 0.1, 0.015, CABINET.depth - 0.1, 0.006), new THREE.MeshBasicMaterial({ color: 0xfff8e6 }));
+    strip.position.set(CABINET.depth / 2, y1 - 0.06, zc);
+    strip.userData.noRaycast = true;
+    cab.add(strip);
+
+    // 유리문 (칸마다 1장) + 테두리 프레임 + 손잡이
+    const frame = new THREE.Mesh(rbox(0.05, y1 - 0.1, bayW - 0.06, 0.02), toy(doorColors[i % 2]));
+    frame.position.set(outerX1 - outerX0 + 0.01, y1 / 2, zc);
+    const pane = new THREE.Mesh(rbox(0.02, y1 - 0.26, bayW - 0.22, 0.01), glassMat);
+    pane.position.set(outerX1 - outerX0 + 0.03, y1 / 2, zc);
+    const handle = new THREE.Mesh(rbox(0.045, 0.26, 0.045, 0.02), toy(C.yellow));
+    handle.position.set(outerX1 - outerX0 + 0.055, 0.75, zc + (i % 2 ? 1 : -1) * (bayW / 2 - 0.12));
     cab.add(frame, pane, handle);
   }
-  // 선반 위 알록달록한 실험 기구 (장식)
-  const knickColors = [C.red, C.blue, C.yellow, C.purple, C.orange, C.green];
-  for (let i = 0; i < 3; i++) {
-    const shelfM = new THREE.Mesh(rbox(0.6, 0.03, 1.5, 0.01), toy(C.offWhite));
-    shelfM.position.set(0, 0.45 + i * 0.55, 0);
-    cab.add(shelfM);
-    for (let k = 0; k < 2; k++) {
-      const col = knickColors[i * 2 + k];
-      const knick = new THREE.Mesh(
-        (i + k) % 2 ? cyl(0.07, 0.22, 0.04) : rbox(0.18, 0.14, 0.24),
-        toy(col),
-      );
-      knick.position.set(-0.02, 0.58 + i * 0.55, (k ? 0.35 : -0.35));
-      cab.add(knick);
-    }
-  }
-  const sign = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 0.26), new THREE.MeshBasicMaterial({ map: labelTexture('🧪 실험 도구 (E)', { bg: '#a6ddd2', fg: '#4f5d66' }), transparent: true }));
-  sign.position.set(cabHalf.x + 0.02, cabHalf.y * 2 + 0.2, 0);
+
+  const sign = new THREE.Mesh(
+    new THREE.PlaneGeometry(CABINET.halfZ * 1.7, 0.34),
+    new THREE.MeshBasicMaterial({ map: labelTexture('🧪 실험 도구 보관함 (E)', { bg: '#a6ddd2', fg: '#4f5d66', w: 1024, h: 192 }), transparent: true }),
+  );
+  sign.position.set(CABINET.depth + 0.02, y1 + 0.26, 0);
   sign.rotation.y = Math.PI / 2;
   cab.add(sign);
-  addStatic(cab, 'cabinet', cabHalf, new THREE.Vector3(cab.position.x, cabHalf.y, cab.position.z));
+
+  addStatic(cab, 'cabinet', { x: CABINET.depth / 2, y: y1 / 2, z: CABINET.halfZ }, new THREE.Vector3(outerX0 + CABINET.depth / 2, y1 / 2, CABINET.zCenter));
 
   // ── 칠판 (뒤쪽 벽) ─────────────────────────────────────
   const blackboard = new Blackboard(4, 1.6);
@@ -244,7 +299,7 @@ export function buildLabScene(ctx) {
   const lid = new THREE.Mesh(cyl(0.24, 0.05), toy(C.white));
   lid.position.y = 0.52;
   bin.add(binBody, lid);
-  bin.position.set(-ROOM.halfX + 0.5, 0, 1.2);
+  bin.position.set(-ROOM.halfX + 0.5, 0, 2.8); // 새 진열장(z ≤ 1.5) 북쪽 끝에서 충분히 띄움
   addStatic(bin, 'static', { x: 0.24, y: 0.27, z: 0.24 }, new THREE.Vector3(bin.position.x, 0.27, bin.position.z));
 
   // 오른쪽 벽의 이동식 카트 + 비커
@@ -280,7 +335,7 @@ export function buildLabScene(ctx) {
     addDecor(m);
   };
   poster('⚠ 레이저를 눈으로 보지 마세요', '#ffc2cb', ROOM.halfX - 0.01, 1.9, 1.2, -Math.PI / 2);
-  poster('🥽 보안경 착용!', '#c6dcff', -ROOM.halfX + 0.01, 1.9, 1.5, Math.PI / 2);
+  poster('🥽 보안경 착용!', '#c6dcff', -ROOM.halfX + 0.01, 1.9, 4.3, Math.PI / 2);
   poster('F = ma 는 언제나 옳다*', '#ddd2ff', 3.8, 2.3, -ROOM.halfZ + 0.01, 0);
 
   // 오른쪽 벽의 문 (장식)

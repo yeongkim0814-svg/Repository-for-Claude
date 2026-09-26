@@ -95,6 +95,7 @@ src/
     Placement.js                고스트 미리보기 + 배치 가능 판정 (겹침/지지)
   scene/  LabScene.js, Blackboard.js (CanvasTexture 훅),
           style.js (아트 스타일: 팔레트, toy()/metal() 재질, rbox() 둥근 박스 — 룩은 여기서 일괄 조정)
+          KitAssets.js (Kenney glTF 소품 로더), FactoryDecor.js (배경 장식 배치)
   tools/  Pulley.js, Laser.js, index.js
           optics/ common.js(광축 높이·optics 규약), RayBox, Mirror, Lens, Slit, Screen, GlassBlock
   demos.js                      ?demo=… 프리셋
@@ -102,9 +103,33 @@ src/
           UIManager.js (범용 설정 패널)
 tests/interaction.test.mjs      레지스트리·엔진 단위 테스트
 tests/optics.test.mjs           반사·스넬·전반사 임계각·프레넬 4%·렌즈 초점·슬릿 극소/극대 검증
-vendor/                         three (+ PointerLockControls, RoundedBoxGeometry, RoomEnvironment),
-                                rapier (라이선스 동봉)
+vendor/                         three (+ PointerLockControls, RoundedBoxGeometry, RoomEnvironment,
+                                GLTFLoader), rapier, kenney/factory-kit (배경 장식용 glTF, CC0)
+                                — 라이선스 전부 동봉
 ```
+
+## 배경 아트: 유리문 진열장 + Kenney 소품
+
+**도구 찬장**이 왼쪽 벽 전체(6 m)를 차지하는 5칸짜리 유리문 진열장으로 바뀌었습니다.
+칸마다 유리문 1장(분홍/청록 번갈아), 선반 3단, 그 위에 절차적으로 만든 알록달록한 실험
+기구 장식이 놓여 있고, 몇 칸에는 실제 Kenney 소품(톱니바퀴·계기판·상자)도 유리 너머로
+보이도록 넣었습니다. 천장 안쪽의 발광 스트립 덕분에 그림자 속에서도 내용물이 잘 보입니다.
+찬장은 `src/scene/LabScene.js`의 `CABINET` 상수(칸 수·길이·깊이)로 정의되어 있어 칸 수를
+늘리거나 벽을 바꾸는 정도는 상수만 고치면 됩니다.
+
+배경의 나머지(배관·캣워크·크레인·화물 상자·기계·경고 볼라드 등)는
+[Kenney의 Factory Kit](https://kenney.nl)(CC0)에서 가져온 실제 3D 모델입니다.
+`src/scene/KitAssets.js`가 glTF 로더를 감싸서 이름으로 소품을 배치하는 `placeKitProp()`
+하나만 남겼고, `src/scene/FactoryDecor.js`가 방 곳곳에 그 함수를 호출합니다. 이 소품들은
+**순수 장식**이라 도구(Entity)가 아니고, 상호작용 엔진·레이캐스트에도 관여하지 않습니다
+(`collide: true`를 준 몇몇 큰 소품만 실제 바운딩 박스로 콜라이더가 생겨 벽처럼 막습니다).
+글TF 로딩은 비동기라 `main.js`가 `buildLabScene()` 이후 기다리지 않고 호출하며, 소품은
+로드되는 대로 하나씩 나타납니다. 재질에는 은은한 파스텔 틴트를 곱해 기존 실험실 톤과
+어울리게 했습니다(유리 재질은 원래 색 유지).
+
+새 소품을 추가하려면: `vendor/kenney/factory-kit/`에 `.glb` 파일을 추가하고,
+`FactoryDecor.js`에서 `at('파일이름', { position, rotationY, scale, collide })` 한 줄만
+쓰면 됩니다 — 모델을 직접 파싱하거나 바운딩 박스를 잴 필요가 없습니다.
 
 ## 핵심 아키텍처
 

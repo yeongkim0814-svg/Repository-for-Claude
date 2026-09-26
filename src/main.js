@@ -34,6 +34,7 @@ import { InteractionEngine } from './interaction/InteractionEngine.js';
 import { registerDefaultStrategies } from './interaction/proximityStrategies.js';
 import { registerRules } from './interaction/rules.js';
 import { buildLabScene, TABLE } from './scene/LabScene.js';
+import { dressFactoryDecor } from './scene/FactoryDecor.js';
 import { InputManager } from './player/InputManager.js';
 import { PlayerController } from './player/PlayerController.js';
 import { Targeting } from './player/Targeting.js';
@@ -78,6 +79,8 @@ ctx.physics = new PhysicsWorld();
 ctx.entities = new EntityManager(ctx);
 Object.assign(ctx, buildLabScene(ctx)); // staticBlockers, blackboard
 ctx.optics = new OpticalSystem(ctx);
+// 배경 장식(Kenney 소품)은 glTF를 비동기로 불러온다 — 로딩을 기다리지 않고 하나씩 나타나게 둔다.
+dressFactoryDecor(ctx).catch((err) => console.warn('[FactoryDecor] 배경 장식 배치 중 오류:', err));
 
 const checker = new ProximityChecker();
 registerDefaultStrategies(checker, ctx);
