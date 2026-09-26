@@ -1,4 +1,12 @@
 {
+  "assets": {
+    "floor": null,
+    "wall": null
+  },
+  "placeholders": {
+    "floor": { "color": "#9aa0a6", "thicknessM": 0.05 },
+    "wall": { "color": "#c9ccd1", "thicknessM": 0.1 }
+  },
   "environment": {
     "backgroundColor": "#1e2126",
     "ambientLightColor": "#ffffff",
@@ -6,15 +14,5 @@
     "sunLightColor": "#ffffff",
     "sunLightIntensity": 1.2,
     "sunLightDirection": [0.4, 1.0, 0.3]
-  },
-  "assets": {
-    "room": {
-      "model": null,
-      "placeholder": { "shape": "room", "sizeM": [10, 3, 10], "color": "#c9ccd1" }
-    },
-    "table": {
-      "model": null,
-      "placeholder": { "shape": "box", "sizeM": [2.0, 0.9, 1.0], "color": "#8a6d4b" }
-    }
   }
 }

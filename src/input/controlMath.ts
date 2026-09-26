@@ -1,8 +1,6 @@
 // 조작 관련 순수 함수 (DOM·three 의존 없음 → 단위 테스트 대상).
 // 좌표계: three.js 기본. +Y 위, yaw=0 일 때 시선은 -Z.
 
-import type { WalkArea } from '../config/types';
-
 export interface Vec2 {
   x: number;
   y: number;
@@ -56,13 +54,5 @@ export function applyLook(
   return {
     yawRad: yawRad - dxPx * sensitivityRadPerPx,
     pitchRad: Math.max(-maxPitchRad, Math.min(maxPitchRad, nextPitch)),
-  };
-}
-
-/** 이동 가능 영역 밖으로 나가지 않게 자른다. */
-export function clampToArea(xM: number, zM: number, area: WalkArea): { xM: number; zM: number } {
-  return {
-    xM: Math.max(area.minX, Math.min(area.maxX, xM)),
-    zM: Math.max(area.minZ, Math.min(area.maxZ, zM)),
   };
 }

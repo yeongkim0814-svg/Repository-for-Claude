@@ -1,30 +1,35 @@
-// 에셋 규칙 테스트: assets.json 구조 / lab.json 참조 무결성 / placeholder 원점 규약.
+// 에셋 규칙 테스트: assets.json 구조 / placeholder 원점 규약.
 import { readFileSync } from 'node:fs';
 import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
-import { createPlaceholder } from '../src/assets/placeholder';
-import type { AssetsFile, LabFile } from '../src/config/types';
+import { createPlaceholderBox } from '../src/assets/placeholder';
+import type { AssetsFile } from '../src/config/types';
 
-const load = <T>(f: string): T => JSON.parse(readFileSync(`public/${f}`, 'utf8')) as T;
-const assetsFile = load<AssetsFile>('assets.json');
-const lab = load<LabFile>('lab.json');
+const assetsFile = JSON.parse(readFileSync('public/assets.json', 'utf8')) as AssetsFile;
 
 describe('assets.json', () => {
-  it('모든 에셋은 model(문자열|null)과 placeholder 를 가진다', () => {
-    for (const [name, e] of Object.entries(assetsFile.assets)) {
-      expect(e.model === null || typeof e.model === 'string', name).toBe(true);
-      expect(['box', 'room'], name).toContain(e.placeholder.shape);
-      expect(e.placeholder.sizeM, name).toHaveLength(3);
+  it('방 에셋 floor, wall 이 존재', () => {
+    expect(assetsFile.assets).toHaveProperty('floor');
+    expect(assetsFile.assets).toHaveProperty('wall');
+  });
+  it('모든 에셋 값은 문자열(.glb 경로) 또는 null', () => {
+    for (const [name, v] of Object.entries(assetsFile.assets)) {
+      expect(v === null || typeof v === 'string', name).toBe(true);
     }
   });
-  it('lab.json 이 참조하는 에셋은 전부 assets.json 에 존재', () => {
-    for (const f of lab.fixtures) expect(assetsFile.assets).toHaveProperty(f.asset);
+  it('모든 에셋은 placeholder 외형(색, 두께)을 가진다', () => {
+    for (const name of Object.keys(assetsFile.assets)) {
+      const s = assetsFile.placeholders[name];
+      expect(s, name).toBeDefined();
+      expect(typeof s.color, name).toBe('string');
+      expect(s.thicknessM, name).toBeGreaterThan(0);
+    }
   });
 });
 
 describe('placeholder', () => {
   it('원점 = 바닥 중앙 (바운딩박스 min.y=0, x·z 중심 0)', () => {
-    const mesh = createPlaceholder({ shape: 'box', sizeM: [2, 0.9, 1], color: '#000000' });
+    const mesh = createPlaceholderBox([2, 0.9, 1], '#000000');
     const box = new THREE.Box3().setFromObject(mesh);
     expect(box.min.y).toBeCloseTo(0);
     expect(box.max.y).toBeCloseTo(0.9);

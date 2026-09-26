@@ -55,9 +55,13 @@
 - 각 단계 끝에 "무엇을 만들었고, 어떻게 확인하는지" 요약.
 
 ## 현재 구조 (구현 메모)
-- `public/assets.json` — 에셋 이름 → `{ model: ".glb 경로" | null, placeholder: {...} }`, 조명·배경색
-- `public/lab.json` — 방 배치(fixtures), 플레이어 시작 위치/속도/이동영역, 카메라, 조작 감도
-- `src/assets/` — AssetRegistry(이름 → Object3D), placeholder 생성
-- `src/input/` — controlMath(순수 함수, 테스트 대상), touchControls(멀티터치)
+- `public/assets.json`
+  - `assets`: 에셋 이름 → `.glb 경로` 또는 `null`(placeholder)
+  - `placeholders`: null 일 때의 외형(색, 두께) / `environment`: 배경색·조명
+- `public/lab.json` — 방 크기, 플레이어(시작 위치·눈높이·반지름·속도), 카메라, 조작 감도
+- `src/assets/` — AssetRegistry(이름 → Object3D), placeholder 상자(원점=바닥 중앙)
+- `src/room/` — roomLayout(바닥·벽 배치, 벽 충돌; 순수 함수), buildRoom
+- `src/input/` — controlMath(순수 함수), touchControls(Touch Events, 멀티터치)
 - `src/player/` — 1인칭 카메라
 - 명령: `npm run dev` / `npm test` / `npm run build`
+- 배포: main push → Actions 테스트·빌드 → Pages (https://yeongkim0814-svg.github.io/Repository-for-Claude/)

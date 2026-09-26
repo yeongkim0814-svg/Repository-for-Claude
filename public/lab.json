@@ -1,14 +1,11 @@
 {
-  "fixtures": [
-    { "asset": "room", "positionM": [0, 0, 0], "rotationYDeg": 0 },
-    { "asset": "table", "positionM": [0, 0, -2], "rotationYDeg": 0 }
-  ],
+  "room": { "widthM": 10, "depthM": 10, "heightM": 3 },
   "player": {
-    "startPositionM": [0, 0, 2],
+    "startPositionM": [0, 0, 3],
     "startYawDeg": 0,
     "eyeHeightM": 1.6,
-    "walkSpeedMPerS": 1.5,
-    "walkAreaM": { "minX": -4.7, "maxX": 4.7, "minZ": -4.7, "maxZ": 4.7 }
+    "radiusM": 0.3,
+    "walkSpeedMPerS": 1.5
   },
   "camera": { "fovDeg": 70, "nearM": 0.05, "farM": 100 },
   "controls": {

@@ -5,8 +5,8 @@ import { loadPublicJson } from './config/loadJson';
 import type { AssetsFile, LabFile } from './config/types';
 import { TouchControls } from './input/touchControls';
 import { Player } from './player/player';
+import { buildRoom } from './room/buildRoom';
 
-const DEG = Math.PI / 180;
 const MAX_DT_S = 0.1; // 탭 전환 등으로 프레임이 멈췄다 재개될 때 순간이동 방지
 
 async function main(): Promise<void> {
@@ -29,13 +29,7 @@ async function main(): Promise<void> {
   sun.position.set(...env.sunLightDirection);
   scene.add(sun);
 
-  const registry = new AssetRegistry(assetsFile);
-  for (const f of lab.fixtures) {
-    const obj = await registry.create(f.asset);
-    obj.position.set(...f.positionM);
-    obj.rotation.y = f.rotationYDeg * DEG;
-    scene.add(obj);
-  }
+  scene.add(await buildRoom(new AssetRegistry(assetsFile), lab.room));
 
   const camera = new THREE.PerspectiveCamera(lab.camera.fovDeg, 1, lab.camera.nearM, lab.camera.farM);
   const player = new Player(camera, lab);

@@ -1,9 +1,9 @@
 import { joystickInput, type Vec2 } from './controlMath';
 
 /**
- * 멀티터치 입력. 화면 왼쪽 절반에서 시작한 터치 = 조이스틱(이동),
- * 오른쪽 절반에서 시작한 터치 = 드래그(시점). pointerId 로 각각 추적하므로
- * 두 손가락 동시 조작이 가능하다.
+ * 멀티터치 입력 (Touch Events). 화면 왼쪽 절반에서 시작한 터치 = 조이스틱(이동),
+ * 오른쪽 절반에서 시작한 터치 = 드래그(시점). Touch.identifier 로 손가락을 각각
+ * 추적하므로 두 손가락 동시 조작이 가능하다.
  */
 export class TouchControls {
   /** 현재 조이스틱 입력 ([-1,1]). */
@@ -19,7 +19,7 @@ export class TouchControls {
   private readonly knob: HTMLDivElement;
 
   constructor(
-    private readonly surface: HTMLElement,
+    surface: HTMLElement,
     private readonly radiusPx: number,
   ) {
     this.base = document.createElement('div');
@@ -30,11 +30,12 @@ export class TouchControls {
     document.body.appendChild(this.base);
     this.base.style.width = this.base.style.height = `${radiusPx * 2}px`;
 
-    surface.addEventListener('pointerdown', this.onDown);
-    surface.addEventListener('pointermove', this.onMove);
-    surface.addEventListener('pointerup', this.onUp);
-    surface.addEventListener('pointercancel', this.onUp);
-    surface.addEventListener('contextmenu', (e) => e.preventDefault());
+    // passive: false → preventDefault 로 스크롤·확대 제스처를 막는다.
+    const opts = { passive: false } as const;
+    surface.addEventListener('touchstart', this.onStart, opts);
+    surface.addEventListener('touchmove', this.onMove, opts);
+    surface.addEventListener('touchend', this.onEnd, opts);
+    surface.addEventListener('touchcancel', this.onEnd, opts);
   }
 
   /** 마지막 호출 이후 누적된 시점 드래그(px)를 꺼내고 0 으로 되돌린다. */
@@ -44,43 +45,48 @@ export class TouchControls {
     return d;
   }
 
-  private onDown = (e: PointerEvent): void => {
+  private onStart = (e: TouchEvent): void => {
     e.preventDefault();
-    this.surface.setPointerCapture(e.pointerId);
-    const leftHalf = e.clientX < window.innerWidth / 2;
-    if (leftHalf && this.joyId === null) {
-      this.joyId = e.pointerId;
-      this.joyOrigin = { x: e.clientX, y: e.clientY };
-      this.base.style.left = `${e.clientX}px`;
-      this.base.style.top = `${e.clientY}px`;
-      this.base.classList.add('active');
-      this.setKnob(0, 0);
-    } else if (!leftHalf && this.lookId === null) {
-      this.lookId = e.pointerId;
-      this.lookLast = { x: e.clientX, y: e.clientY };
+    for (const t of Array.from(e.changedTouches)) {
+      const leftHalf = t.clientX < window.innerWidth / 2;
+      if (leftHalf && this.joyId === null) {
+        this.joyId = t.identifier;
+        this.joyOrigin = { x: t.clientX, y: t.clientY };
+        this.base.style.left = `${t.clientX}px`;
+        this.base.style.top = `${t.clientY}px`;
+        this.base.classList.add('active');
+        this.setKnob(0, 0);
+      } else if (!leftHalf && this.lookId === null) {
+        this.lookId = t.identifier;
+        this.lookLast = { x: t.clientX, y: t.clientY };
+      }
     }
   };
 
-  private onMove = (e: PointerEvent): void => {
-    if (e.pointerId === this.joyId) {
-      const dx = e.clientX - this.joyOrigin.x;
-      const dy = e.clientY - this.joyOrigin.y;
-      this.move = joystickInput(dx, dy, this.radiusPx);
-      this.setKnob(this.move.x * this.radiusPx, -this.move.y * this.radiusPx);
-    } else if (e.pointerId === this.lookId) {
-      this.lookAccum.x += e.clientX - this.lookLast.x;
-      this.lookAccum.y += e.clientY - this.lookLast.y;
-      this.lookLast = { x: e.clientX, y: e.clientY };
+  private onMove = (e: TouchEvent): void => {
+    e.preventDefault();
+    for (const t of Array.from(e.changedTouches)) {
+      if (t.identifier === this.joyId) {
+        this.move = joystickInput(t.clientX - this.joyOrigin.x, t.clientY - this.joyOrigin.y, this.radiusPx);
+        this.setKnob(this.move.x * this.radiusPx, -this.move.y * this.radiusPx);
+      } else if (t.identifier === this.lookId) {
+        this.lookAccum.x += t.clientX - this.lookLast.x;
+        this.lookAccum.y += t.clientY - this.lookLast.y;
+        this.lookLast = { x: t.clientX, y: t.clientY };
+      }
     }
   };
 
-  private onUp = (e: PointerEvent): void => {
-    if (e.pointerId === this.joyId) {
-      this.joyId = null;
-      this.move = { x: 0, y: 0 };
-      this.base.classList.remove('active');
-    } else if (e.pointerId === this.lookId) {
-      this.lookId = null;
+  private onEnd = (e: TouchEvent): void => {
+    e.preventDefault();
+    for (const t of Array.from(e.changedTouches)) {
+      if (t.identifier === this.joyId) {
+        this.joyId = null;
+        this.move = { x: 0, y: 0 };
+        this.base.classList.remove('active');
+      } else if (t.identifier === this.lookId) {
+        this.lookId = null;
+      }
     }
   };
 

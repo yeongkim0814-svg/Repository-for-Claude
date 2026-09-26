@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import type { LabFile } from '../config/types';
-import { applyLook, clampToArea, walkDelta, type Vec2 } from '../input/controlMath';
+import { applyLook, walkDelta, type Vec2 } from '../input/controlMath';
+import { clampToRoom } from '../room/roomLayout';
 
 const DEG = Math.PI / 180;
 
@@ -33,7 +34,7 @@ export class Player {
     this.pitchRad = look.pitchRad;
 
     const d = walkDelta(this.yawRad, move, this.cfg.player.walkSpeedMPerS, dtS);
-    const p = clampToArea(this.xM + d.dxM, this.zM + d.dzM, this.cfg.player.walkAreaM);
+    const p = clampToRoom(this.xM + d.dxM, this.zM + d.dzM, this.cfg.room, this.cfg.player.radiusM);
     this.xM = p.xM;
     this.zM = p.zM;
     this.apply();

@@ -1,6 +1,6 @@
 // 조작 로직 테스트 (물리 규칙 아님). 기대값은 모두 손계산 가능한 단순 값.
 import { describe, expect, it } from 'vitest';
-import { applyLook, clampToArea, joystickInput, walkDelta } from '../src/input/controlMath';
+import { applyLook, joystickInput, walkDelta } from '../src/input/controlMath';
 
 describe('joystickInput', () => {
   it('반지름 안: 변위/반지름, 화면 위(-dy)가 전진(+y)', () => {
@@ -52,12 +52,5 @@ describe('applyLook', () => {
   it('pitch 는 ±max 로 제한', () => {
     const r = applyLook(0, 0, 0, 10000, 0.005, 1.4);
     expect(r.pitchRad).toBeCloseTo(-1.4);
-  });
-});
-
-describe('clampToArea', () => {
-  it('영역 밖 좌표를 경계로 자름', () => {
-    const p = clampToArea(10, -10, { minX: -4, maxX: 4, minZ: -4, maxZ: 4 });
-    expect(p).toEqual({ xM: 4, zM: -4 });
   });
 });
