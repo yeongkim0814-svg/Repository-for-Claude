@@ -1,0 +1,20 @@
+{
+  "environment": {
+    "backgroundColor": "#1e2126",
+    "ambientLightColor": "#ffffff",
+    "ambientLightIntensity": 0.6,
+    "sunLightColor": "#ffffff",
+    "sunLightIntensity": 1.2,
+    "sunLightDirection": [0.4, 1.0, 0.3]
+  },
+  "assets": {
+    "room": {
+      "model": null,
+      "placeholder": { "shape": "room", "sizeM": [10, 3, 10], "color": "#c9ccd1" }
+    },
+    "table": {
+      "model": null,
+      "placeholder": { "shape": "box", "sizeM": [2.0, 0.9, 1.0], "color": "#8a6d4b" }
+    }
+  }
+}
